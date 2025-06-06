@@ -1,2 +1,14 @@
 pasos para ejecutar el proyecto 
 
+Pasos para la creación
+python -m venv venv
+
+activacion
+.\venv\Scripts\activate
+Mac source env/bin/activate
+
+
+
+pip freeze > requirements.txt
+
+pip install -r requirements.txt
