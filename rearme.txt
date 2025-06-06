@@ -1,14 +1,27 @@
-pasos para ejecutar el proyecto 
+## Pasos para ejecutar el proyecto 
 
-Pasos para la creación
+# creación de entorno virtual
 python -m venv venv
 
-activacion
+# activacion de entorno virtual
 .\venv\Scripts\activate
-Mac source env/bin/activate
 
-
-
+# crear/actualizar archivo requirements 
 pip freeze > requirements.txt
-
+# instalar archivo requirements
 pip install -r requirements.txt
+
+## comandos git
+# para hacer commit
+git add .
+git commit -m "Comentario"
+git push
+
+# ver estado 
+git status
+
+# cambiar de rama
+git checkout nombreRama
+
+# clonar el proyecto 
+git clone https://github.com/RedMedicronIPS/backend_gestion_proveedores.git
