@@ -13,11 +13,12 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role']
+        fields = ['id', 'username', 'email', 'role', 'is_2fa_enabled']
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
+    otp_code = serializers.CharField(required=False)
 
     def validate(self, data):
         user = authenticate(**data)

@@ -1,4 +1,4 @@
-## Pasos para ejecutar el proyecto 
+## Pasos para ejecutar el proyecto - Python 3.12.10
 
 # creación de entorno virtual
 python -m venv venv
