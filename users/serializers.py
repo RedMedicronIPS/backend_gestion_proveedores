@@ -13,7 +13,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'is_2fa_enabled']
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name', 'role', 'is_2fa_enabled'
+        ]
+
+    def validate_username(self, value):
+        user = self.instance
+        if User.objects.exclude(pk=user.pk).filter(username=value).exists():
+            raise serializers.ValidationError("El nombre de usuario ya está en uso.")
+        return value
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
