@@ -28,19 +28,25 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        user = authenticate(
-            username=serializer.validated_data['username'],
-            password=serializer.validated_data['password']
-        )
+        username = serializer.validated_data.get('username')
+        password = serializer.validated_data.get('password')
+        
+        if not username or not password:
+            return Response({
+                'error': 'Se requieren usuario y contraseña'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(username=username, password=password)
 
         if not user:
-            return Response({'error': 'Invalid credentials'}, 
-                          status=status.HTTP_401_UNAUTHORIZED)
+            return Response({
+                'error': 'Credenciales inválidas'
+            }, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Verificar si la cuenta está activa
         if not user.is_active:
-            return Response({'error': 'Account is disabled'}, 
-                          status=status.HTTP_401_UNAUTHORIZED)
+            return Response({
+                'error': 'Cuenta desactivada'
+            }, status=status.HTTP_401_UNAUTHORIZED)
 
         if user.is_2fa_enabled:
             temp_token = str(uuid.uuid4())
@@ -49,10 +55,10 @@ class LoginView(APIView):
             return Response({
                 'require_2fa': True,
                 'temp_token': temp_token,
-                'message': 'Verificación 2FA requerida',
-                'user_id': user.id  # Agregar para referencia
+                'message': 'Verificación 2FA requerida'
             }, status=status.HTTP_200_OK)
 
+        # Si no tiene 2FA, generar tokens JWT
         token = RefreshToken.for_user(user)
         return Response({
             'access': str(token.access_token),

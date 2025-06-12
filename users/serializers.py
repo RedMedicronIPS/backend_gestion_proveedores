@@ -17,16 +17,9 @@ class UserSerializer(serializers.ModelSerializer):
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
-    password = serializers.CharField()
+    password = serializers.CharField(write_only=True)
     otp_code = serializers.CharField(required=False)
 
-    def validate(self, data):
-        user = authenticate(**data)
-        if user and user.is_active:
-            token = RefreshToken.for_user(user)
-            return {
-                'user': UserSerializer(user).data,
-                'refresh': str(token),
-                'access': str(token.access_token),
-            }
-        raise serializers.ValidationError("Invalid credentials")
+    def validate(self, attrs):
+        # Remover la validación aquí ya que se hará en la vista
+        return attrs
