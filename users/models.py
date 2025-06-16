@@ -20,6 +20,7 @@ class User(AbstractUser):
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
     otp_secret = models.CharField(max_length=32, null=True, blank=True)
     is_2fa_enabled = models.BooleanField(default=False)
+    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)  # Nuevo campo
 
     def generate_otp_secret(self):
         """Generate a new OTP secret key."""
