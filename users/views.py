@@ -301,3 +301,20 @@ class PasswordResetConfirmView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'Usuario no encontrado'}, 
                           status=status.HTTP_404_NOT_FOUND)
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        current_password = request.data.get("current_password")
+        new_password = request.data.get("new_password")
+        # print("Usuario:", user.username)
+        # print("old_password recibido:", current_password)
+        # print("new_password recibido:", new_password)
+        # print("check_password:", user.check_password(current_password))
+        if not user.check_password(current_password):
+            return Response({"error": "Contraseña actual incorrecta."}, status=status.HTTP_400_BAD_REQUEST)
+        user.set_password(new_password)
+        user.save()
+        return Response({"message": "Contraseña cambiada correctamente."}, status=status.HTTP_200_OK)

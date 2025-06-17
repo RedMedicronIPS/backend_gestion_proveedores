@@ -10,7 +10,7 @@ class RoleSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     role = RoleSerializer(read_only=True)
-    profile_picture = serializers.SerializerMethodField()
+    profile_picture = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
@@ -19,14 +19,20 @@ class UserSerializer(serializers.ModelSerializer):
             'is_2fa_enabled', 'profile_picture', 'date_joined'
         ]
 
-    def get_profile_picture(self, obj):
+    def to_representation(self, instance):
+        """Devuelve la URL absoluta o None o un ícono por defecto si no hay foto."""
+        data = super().to_representation(instance)
         request = self.context.get('request')
-        if obj.profile_picture:
-            url = obj.profile_picture.url
+        if instance.profile_picture:
+            url = instance.profile_picture.url
             if request is not None:
-                return request.build_absolute_uri(url)
-            return url
-        return None  # O una URL de ícono por defecto si lo deseas
+                data['profile_picture'] = request.build_absolute_uri(url)
+            else:
+                data['profile_picture'] = url
+        else:
+            # Puedes poner aquí la URL de un ícono por defecto si lo deseas
+            data['profile_picture'] = None
+        return data
 
     def validate_username(self, value):
         user = self.instance

@@ -3,7 +3,7 @@ from .views import (
     LoginView, RoleListCreateView, UserListView, 
     CurrentUserView, Enable2FAView, Verify2FAView,
     Toggle2FAView, PasswordResetRequestView, PasswordResetConfirmView,
-    VerifyOTPView
+    VerifyOTPView, ChangePasswordView
 )
 
 urlpatterns = [
@@ -17,6 +17,7 @@ urlpatterns = [
     path('password-reset/', PasswordResetRequestView.as_view(), name='password-reset-request'),
     path('password-reset-confirm/<int:user_id>/<str:token>/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
+    path('change-password/', ChangePasswordView.as_view(), name='change-password'),
 ]
 
 
