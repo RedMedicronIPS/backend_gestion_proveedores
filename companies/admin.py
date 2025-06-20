@@ -2,6 +2,8 @@ from django.contrib import admin
 from .models.company import Company
 from .models.department import Department
 from .models.headquarters import Headquarters
+from .models.process_type import ProcessType
+from .models.process import Process
 
 # Configurar el modelo Company en el admin
 @admin.register(Company)
@@ -26,3 +28,17 @@ class HeadquartersAdmin(admin.ModelAdmin):
     search_fields = ('habilitationCode', 'name', 'company__name')
     list_filter = ('status',)
     ordering = ('id',)
+
+@admin.register(ProcessType)
+class ProcessTypeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'status', 'creationDate', 'updateDate')
+    search_fields = ('name', 'code')
+    list_filter = ('status', 'creationDate', 'updateDate')
+    ordering = ('creationDate',)
+
+@admin.register(Process)
+class ProcessAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'code', 'version', 'status', 'creationDate', 'updateDate')
+    search_fields = ('name', 'code')
+    list_filter = ('status', 'creationDate', 'updateDate')
+    ordering = ('creationDate',)
