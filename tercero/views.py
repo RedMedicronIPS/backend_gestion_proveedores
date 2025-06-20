@@ -7,3 +7,4 @@ class TerceroViewSet(viewsets.ModelViewSet):
     queryset = Tercero.objects.all()
     serializer_class = TerceroSerializer
     permission_classes = [IsAuthenticated]
+
