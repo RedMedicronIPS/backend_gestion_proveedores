@@ -1,1 +1,6 @@
 from .factura_view import FacturaViewSet
+from .factura_detalle_view import FacturaDetalleViewSet
+from .pendiente_revision_view import PendienteRevisionViewSet
+from .pendiente_reconocimiento_contable_view import PendienteReconocimientoContableViewSet
+from .revision_impuestos_view import RevisionImpuestosViewSet
+from .revision_contraloria_view import RevisionContraloriaViewSet
