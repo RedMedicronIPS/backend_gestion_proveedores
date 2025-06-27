@@ -31,14 +31,14 @@ class HeadquartersAdmin(admin.ModelAdmin):
 
 @admin.register(ProcessType)
 class ProcessTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'status', 'creationDate', 'updateDate')
-    search_fields = ('name', 'code')
+    list_display = ('id', 'name', 'status', 'company', 'creationDate', 'updateDate')
+    search_fields = ('name', 'code', 'companyId__name')
     list_filter = ('status', 'creationDate', 'updateDate')
     ordering = ('creationDate',)
 
 @admin.register(Process)
 class ProcessAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'code', 'version', 'status', 'creationDate', 'updateDate')
-    search_fields = ('name', 'code')
+    list_display = ('id', 'name', 'code', 'processType', 'department', 'version', 'status', 'creationDate', 'updateDate')
+    search_fields = ('name', 'code', 'processType_name', 'department_name')
     list_filter = ('status', 'creationDate', 'updateDate')
     ordering = ('creationDate',)
