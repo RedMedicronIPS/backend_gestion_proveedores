@@ -22,7 +22,6 @@ ESTADOS = [
 ]
 
 # === Validaciones ===
-from django.core.exceptions import ValidationError
 
 def validar_archivo_oficial(file):
     ext = file.name.lower().split('.')[-1]
