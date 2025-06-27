@@ -7,7 +7,7 @@ from companies.serializers.process_serializer import ProcessSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 
 class ProcessViewSet(viewsets.ModelViewSet):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     queryset = Process.objects.all()
     serializer_class = ProcessSerializer
 
