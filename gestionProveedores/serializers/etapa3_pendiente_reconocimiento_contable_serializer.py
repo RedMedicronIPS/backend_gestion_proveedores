@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from gestionProveedores.models.pendiente_reconocimiento_contable import PendienteReconocimientoContable
+from gestionProveedores.models.etapa3_pendiente_reconocimiento_contable import PendienteReconocimientoContable
 
 class PendienteReconocimientoContableSerializer(serializers.ModelSerializer):
     class Meta:

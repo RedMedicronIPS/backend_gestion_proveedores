@@ -1,15 +1,15 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from ..models.centro_operaciones import CentroOperaciones
-from ..serializers import CentroOperacionesSerializer
+from ..models import EstadoImpuestos
+from ..serializers import EstadoImpuestosSerializer
 
-class CentroOperacionesViewSet(viewsets.ModelViewSet):
-    queryset = CentroOperaciones.objects.all()
-    serializer_class = CentroOperacionesSerializer
+class EstadoImpuestosViewSet(viewsets.ModelViewSet):
+    queryset = EstadoImpuestos.objects.all()
+    serializer_class = EstadoImpuestosSerializer
 
     def get_queryset(self):
-        return CentroOperaciones.objects.all()
+        return EstadoImpuestos.objects.all()
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -43,7 +43,7 @@ class CentroOperacionesViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
-        centro = self.get_object()
-        centro.status = True  # Requiere campo 'status' en el modelo
-        centro.save()
-        return Response({'status': 'Centro de operaciones activated'})
+        pendiente = self.get_object()
+        pendiente.status = True  # Activar (requiere campo 'status')
+        pendiente.save()
+        return Response({'status': 'Estado impuestos activated'})
