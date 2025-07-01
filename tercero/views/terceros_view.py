@@ -5,3 +5,7 @@ from ..serializers.tercero_serializers import TerceroSerializer
 class TerceroViewSet(viewsets.ModelViewSet):
     queryset = Terceros.objects.all()
     serializer_class = TerceroSerializer
+
+
+
+

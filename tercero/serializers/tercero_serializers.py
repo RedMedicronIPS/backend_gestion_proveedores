@@ -4,4 +4,6 @@ from ..models.terceros import Terceros
 class TerceroSerializer(serializers.ModelSerializer):
     class Meta:
         model = Terceros
-        fields = '_all_'
+        fields = '__all__'
+
+        
