@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from ..models.tercero_municipios_serializer import Municipio
+from ..models.terceros_municipios import Municipio  
 
-class TerceroMunicipioSerializer(serializers.ModelSerializer):
+class MunicipioSerializer(serializers.ModelSerializer):  
     class Meta:
         model = Municipio
-        fields = '_all_'
+        fields = '__all__'
