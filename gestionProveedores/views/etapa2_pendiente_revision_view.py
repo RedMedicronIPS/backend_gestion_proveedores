@@ -1,15 +1,29 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from ..models.centro_operaciones import CentroOperaciones
-from ..serializers import CentroOperacionesSerializer
+from ..models import PendienteRevision
+from ..serializers import PendienteRevisionSerializer
 
-class CentroOperacionesViewSet(viewsets.ModelViewSet):
-    queryset = CentroOperaciones.objects.all()
-    serializer_class = CentroOperacionesSerializer
+class PendienteRevisionViewSet(viewsets.ModelViewSet):
+    queryset = PendienteRevision.objects.all()
+    serializer_class = PendienteRevisionSerializer
+
+    @action(detail=True, methods=['post'])
+    def activate(self, request, pk=None):
+        pendiente = self.get_object()
+        pendiente.revision_estado = True  # Asegúrate que el campo correcto sea este
+        pendiente.save()
+        return Response({'status': 'Pendiente de Revisión activado'})
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def get_queryset(self):
-        return CentroOperaciones.objects.all()
+        return PendienteRevision.objects.all()
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -20,14 +34,7 @@ class CentroOperacionesViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
+    
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -41,9 +48,4 @@ class CentroOperacionesViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['post'])
-    def activate(self, request, pk=None):
-        centro = self.get_object()
-        centro.status = True  # Requiere campo 'status' en el modelo
-        centro.save()
-        return Response({'status': 'Centro de operaciones activated'})
+    

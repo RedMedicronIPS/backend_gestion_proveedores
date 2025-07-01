@@ -1,15 +1,22 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from ..models.centro_operaciones import CentroOperaciones
-from ..serializers import CentroOperacionesSerializer
+from ..models import PendienteReconocimientoContable
+from ..serializers import PendienteReconocimientoContableSerializer
 
-class CentroOperacionesViewSet(viewsets.ModelViewSet):
-    queryset = CentroOperaciones.objects.all()
-    serializer_class = CentroOperacionesSerializer
+class PendienteReconocimientoContableViewSet(viewsets.ModelViewSet):
+    queryset = PendienteReconocimientoContable.objects.all()
+    serializer_class = PendienteReconocimientoContableSerializer
+
+    @action(detail=True, methods=['post'])
+    def activate(self, request, pk=None):
+        pendiente = self.get_object()
+        pendiente.contable_estado = True  # Campo correcto
+        pendiente.save()
+        return Response({'status': 'Pendiente Reconocimiento Contable activado'})
 
     def get_queryset(self):
-        return CentroOperaciones.objects.all()
+        return PendienteReconocimientoContable.objects.all()
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -40,10 +47,3 @@ class CentroOperacionesViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    @action(detail=True, methods=['post'])
-    def activate(self, request, pk=None):
-        centro = self.get_object()
-        centro.status = True  # Requiere campo 'status' en el modelo
-        centro.save()
-        return Response({'status': 'Centro de operaciones activated'})

@@ -1,19 +1,43 @@
 from django.contrib import admin
-from gestionProveedores.models.factura import Factura
-from gestionProveedores.models.factura_detalle import FacturaElectronicaDetalle
-from gestionProveedores.models.causal_devolucion import CausalDevolucion
-from gestionProveedores.models.pendiente_revision import PendienteRevision
-from gestionProveedores.models.pendiente_reconocimiento_contable import PendienteReconocimientoContable
-from gestionProveedores.models.revision_impuestos import RevisionImpuestos
-from gestionProveedores.models.revision_contraloria import RevisionContraloria
-from gestionProveedores.models.centro_costo import CentroCostos
-from gestionProveedores.models.centro_operaciones import CentroOperaciones
+from django.forms.widgets import RadioSelect
+from gestionProveedores.models import (
+    Factura,
+    FacturaElectronicaDetalle,
+    CausalDevolucion,
+    GestionarFactura,
+    PendienteRevision,
+    PendienteReconocimientoContable,
+    EstadoPendienteRContable,
+    DocumentoContable,
+    RevisionImpuestos,
+    RevisionContraloria,
+    CentroCostos,
+    CentroOperaciones,
+    EstadoRevision,
+    EstadoFactura,
+    EstadoImpuestos,
+    EstadoContraloria,
+    PendientePago,
+)
+
 from django.urls import reverse
 from django.utils.html import format_html
 
-class FacturaElectronicaDetalleInline(admin.StackedInline):  # ← cambia aquí
+class FacturaElectronicaDetalleInline(admin.StackedInline):
     model = FacturaElectronicaDetalle
     extra = 0
+    readonly_fields = [
+        'descripcionFactura',
+        'observacionesGestion',
+        'observacionesInconsistencias',
+        'observacionesConformidad',
+        'observacionesPago',
+        'observacionesContabilidad',
+        'observacionesRevision',
+        'observacionesImpuestos',
+        'observacionesContraloria',
+    ]
+
     fieldsets = [
         (None, {
             'fields': [
@@ -25,7 +49,7 @@ class FacturaElectronicaDetalleInline(admin.StackedInline):  # ← cambia aquí
                 'observacionesContabilidad',
                 'observacionesRevision',
                 'observacionesImpuestos',
-                'observacionesContraloria',     
+                'observacionesContraloria',
             ]
         }),
     ]
@@ -72,18 +96,53 @@ class FacturaAdmin(admin.ModelAdmin):
     ]
 
     inlines = [FacturaElectronicaDetalleInline]
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "factura_estado_factura":
+            kwargs["widget"] = RadioSelect()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 @admin.register(PendienteRevision)
 class PendienteRevisionAdmin(admin.ModelAdmin):
-    list_display = ['revision_id', 'revision_fecha_gestion', 'revision_fecha_recibe', 'revision_estado',]
+    list_display = [
+        'revision_id', 
+        'revision_fecha_gestion',
+        'revision_fecha_recibe',
+        'revision_centro_costo', 
+        'revision_estado_revision', 
+        'revision_estado',
+        'revision_causal_revision',
+        'revision_observacion_revision',
+    ]
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "revision_estado_revision":
+            kwargs["widget"] = RadioSelect()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 @admin.register(PendienteReconocimientoContable)
 class PendienteReconocimientoContableAdmin(admin.ModelAdmin):
-    list_display = ['contable_id', 'contable_NIT_prestador', 'contable_estado', ]
-@admin.register(RevisionImpuestos)
-class RevisionImpuestosAdmin(admin.ModelAdmin):
-    list_display = ['revision_impuestos_id', 'revision_impuestos_estado_impuestos', 'revision_impuestos_observaciones', 'revision_impuestos_estado',]
+    list_display = ['contable_id', 
+                    'contable_NIT_prestador', 
+                    'contable_documento',
+                    'contable_numero_documento',
+                    'contable_estado_reconocimiento_contable',
+                    'factura',
+                    'contable_causal_devolucion',
+                    'contable_estado',
+                    'contable_observaciones',]
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "contable_estado_reconocimiento_contable":
+            kwargs["widget"] = RadioSelect()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 @admin.register(RevisionContraloria)
 class RevisionContraloriaAdmin(admin.ModelAdmin):
     list_display = ['contraloria_id', 'contraloria_estado_contraloria', 'contraloria_observaciones', 'contraloria_estado',]
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "contraloria_estado_contraloria":
+            kwargs["widget"] = RadioSelect()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
     
 @admin.register(CentroCostos)
 class CentroCostoAdmin(admin.ModelAdmin):
@@ -91,3 +150,85 @@ class CentroCostoAdmin(admin.ModelAdmin):
 @admin.register(CentroOperaciones)
 class CentroOperacionesAdmin(admin.ModelAdmin):
     list_display = ['operaciones_id', 'operaciones_nombre', 'operaciones_estado',]
+
+@admin.register(GestionarFactura)
+class GestionarFEAdmin(admin.ModelAdmin):
+    list_display = [
+        'factura_id',
+        'factura_centro_op',
+        'factura_estado_factura_gestion',
+        'factura_estado',
+        'causal_devolucion_anulacion',
+        'observaciones_gestion',
+        'ver_factura_relacionada'  # aquí agregas el método que creaste
+    ]
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "factura_estado_factura_gestion":
+            kwargs["widget"] = RadioSelect()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if obj.factura_relacionada:
+            try:
+                detalle = FacturaElectronicaDetalle.objects.filter(factura=obj.factura_relacionada).first()
+                if detalle:
+                    detalle.observacionesGestion = obj.observaciones_gestion
+                    detalle.save()
+            except Exception as e:
+                print(f"Error actualizando detalle: {e}")
+
+
+    def ver_factura_relacionada(self, obj):
+        if obj.factura_relacionada:
+            url = reverse('admin:gestionProveedores_factura_change', args=[obj.factura_relacionada.factura_id])
+            return format_html('<a href="{}">Ver Factura #{}</a>', url, obj.factura_relacionada.factura_id)
+        return "-"
+    
+    ver_factura_relacionada.short_description = "Factura Relacionada"
+@admin.register(EstadoRevision)
+class EstadoRevisionAdmin(admin.ModelAdmin): 
+    list_display = ['estado_id','nombre',]
+
+@admin.register(EstadoPendienteRContable)
+class EstadoPendienteRContableAdmin(admin.ModelAdmin):
+    list_display = ['estado_id', 'nombre']
+    
+@admin.register(EstadoFactura)
+class EstadoFacturaAdmin(admin.ModelAdmin):
+    list_display = ['estado_id','nombre',]
+
+@admin.register(DocumentoContable)
+class DocumentoContableAdmin(admin.ModelAdmin):
+    list_display = ['doc_contable_id', 'doc_contable_tipo', 'doc_contable_estado']
+    
+@admin.register(RevisionImpuestos)
+class RevisionImpuestosAdmin(admin.ModelAdmin):
+    list_display = ['revision_impuestos_id', 'revision_impuestos_estado_impuestos', 'revision_impuestos_observaciones','revision_impuestos_causal_devolucion','revision_impuestos_estado',]
+      
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "revision_impuestos_estado_impuestos":
+            kwargs["widget"] = RadioSelect()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
+@admin.register(EstadoImpuestos)
+class EstadoImpuestosAdmin(admin.ModelAdmin):
+    list_display = ['estado_id','nombre',]
+@admin.register(EstadoContraloria)
+class EstadoContraloriaAdmin(admin.ModelAdmin):
+    list_display = ['estado_id','nombre',]
+
+@admin.register(PendientePago)
+class PendientePagoAdmin(admin.ModelAdmin):
+    list_display = ['pago_id', 'pago_realizo_pago', 'pago_soportes','pago_estado',]
+      
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "pago_realizo_pago":
+            kwargs["widget"] = RadioSelect()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "pago_soportes":
+            kwargs["widget"] = RadioSelect()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    

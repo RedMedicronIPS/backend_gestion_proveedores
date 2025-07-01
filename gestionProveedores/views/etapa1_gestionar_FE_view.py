@@ -1,15 +1,15 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from ..models.centro_operaciones import CentroOperaciones
-from ..serializers import CentroOperacionesSerializer
+from ..models.etapa1_gestion_FE import GestionarFactura
+from ..serializers import GestionarFESerializer
 
-class CentroOperacionesViewSet(viewsets.ModelViewSet):
-    queryset = CentroOperaciones.objects.all()
-    serializer_class = CentroOperacionesSerializer
+class GestionarFEViewSet(viewsets.ModelViewSet):
+    queryset = GestionarFactura.objects.all()
+    serializer_class = GestionarFESerializer
 
     def get_queryset(self):
-        return CentroOperaciones.objects.all()
+        return GestionarFactura.objects.all()
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -43,7 +43,7 @@ class CentroOperacionesViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
-        centro = self.get_object()
-        centro.status = True  # Requiere campo 'status' en el modelo
-        centro.save()
-        return Response({'status': 'Centro de operaciones activated'})
+        gestionar_factura = self.get_object()
+        gestionar_factura.status = True  
+        gestionar_factura.save()
+        return Response({'status': 'Gestion F.E. activated'})
