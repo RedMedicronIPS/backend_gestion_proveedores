@@ -8,7 +8,7 @@ class Departamento(models.Model):
         Pais, on_delete=models.CASCADE, related_name='departamentos', verbose_name="País"
     )
 
-    def _str_(self):
+    def __str__(self):
         return self.departamento_nombre
 
     class Meta:

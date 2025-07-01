@@ -4,7 +4,7 @@ class Pais(models.Model):
     pais_id = models.AutoField(primary_key=True, verbose_name="ID País")
     pais_nombre = models.CharField(max_length=100, verbose_name="Nombre del país")
 
-    def _str_(self):
+    def __str__(self):
         return self.pais_nombre
 
     class Meta:

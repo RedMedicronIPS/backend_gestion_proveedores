@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from ..models.tercero_departamento_serializer import Departamento
+from ..models.terceros_departamentos import Departamento  
 
-class TerceroDepartamentoSerializer(serializers.ModelSerializer):
+
+class DepartamentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Departamento
-        fields = '_all_'
+        fields = '__all__'

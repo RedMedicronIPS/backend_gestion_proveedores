@@ -8,9 +8,9 @@ class Municipio(models.Model):
         Departamento, on_delete=models.CASCADE, related_name='municipios', verbose_name="Departamento"
     )
 
-    def _str_(self):
+    def __str__(self):
         return self.municipio_nombre
 
     class Meta:
         verbose_name = "Municipio"
-        verbose_name_plural = "MUNICIPIOS"     
+        verbose_name_plural = "MUNICIPIOS"
