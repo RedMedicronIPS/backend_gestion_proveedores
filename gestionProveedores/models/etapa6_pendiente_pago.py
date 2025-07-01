@@ -18,4 +18,4 @@ class PendientePago(models.Model):
         return f"Pendiente de pagos de la factura con ID: {self.factura.factura_id}"
     class Meta:
         verbose_name = "Pendiente pago"
-        verbose_name_plural = "PENDIENTES PAGOS"
+        verbose_name_plural = "Etapa 6: Tesorería/Pendiente Pagos"

@@ -25,7 +25,16 @@ class Factura(models.Model):
 
     factura_etapa = models.CharField(max_length=50, default="", verbose_name="Etapa")
     factura_fecha = models.DateField(null=True, blank=True, verbose_name="Fecha")
-    factura_estado_factura = models.IntegerField(default=0, verbose_name="Estado de la factura")
+    factura_estado_factura = models.ForeignKey(
+        'gestionProveedores.EstadoFactura',
+        on_delete=models.PROTECT,  # o CASCADE si prefieres
+        null=False,
+        blank=False,
+        db_column='factura_estado_factura_id',
+        verbose_name="Estado factura",
+        default=1  
+    )
+
     factura_numero_autorizacion = models.CharField(max_length=100, default="", verbose_name="Factura autorizada")
     factura_concepto = models.TextField(default="", verbose_name="Concepto")
     factura_razon_social_proveedor = models.CharField(max_length=150, default="",verbose_name="Razón social proveedor")
@@ -35,19 +44,19 @@ class Factura(models.Model):
 
     causal_anulacion = models.ForeignKey(
         CausalDevolucion, on_delete=models.SET_NULL, null=True, blank=True, related_name='anulaciones'
-    ,verbose_name="Causal de anulación")
+    ,verbose_name="Causal devolución por anulación")
     causal_contabilidad = models.ForeignKey(
         CausalDevolucion, on_delete=models.SET_NULL, null=True, blank=True, related_name='contabilidades'
-    ,verbose_name="Causal de contabilidad")
+    ,verbose_name="Causal devolución por contabilidad")
     causal_revision = models.ForeignKey(
         CausalDevolucion, on_delete=models.SET_NULL, null=True, blank=True, related_name='revisiones'
-    ,verbose_name="Causal de devolución")
+    ,verbose_name="Causal devolución por revisión")
     causal_impuestos = models.ForeignKey(
         CausalDevolucion, on_delete=models.SET_NULL, null=True, blank=True, related_name='impuestos'
-    ,verbose_name="Causal de impuestos")
+    ,verbose_name="Causal devolución por impuestos")
 
     def __str__(self):
         return f"Factura {self.factura_numero_autorizacion}"
     class Meta:
         verbose_name = "Factura"
-        verbose_name_plural = "FACTURAS ELECTRÓNICAS"
+        verbose_name_plural = "FACTURAS ELECTRÓNICAS PRINCIPAL"
