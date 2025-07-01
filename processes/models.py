@@ -22,7 +22,6 @@ ESTADOS = [
 ]
 
 # === Validaciones ===
-
 def validar_archivo_oficial(file):
     ext = file.name.lower().split('.')[-1]
     if ext not in ['pdf', 'xls', 'xlsx']:
@@ -32,7 +31,6 @@ def validar_archivo_editable(file):
     ext = file.name.lower().split('.')[-1]
     if ext not in ['doc', 'docx', 'xls', 'xlsx']:
         raise ValidationError("El archivo editable debe ser Word o Excel (.doc, .docx, .xls, .xlsx)")
-
 
 # === Modelo principal ===
 class Documento(models.Model):
@@ -44,24 +42,22 @@ class Documento(models.Model):
     proceso = models.ForeignKey(Process, on_delete=models.PROTECT)
     tipo_documento = models.CharField(max_length=3, choices=TIPOS_DOCUMENTO)
     version = models.PositiveIntegerField()
-    estado = models.CharField(max_length=3, choices=ESTADOS)
+    estado = models.CharField(max_length=3, choices=ESTADOS, default='VIG')
     activo = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     archivo_oficial = models.FileField(
-    upload_to='documentos/oficiales/',
-    validators=[validar_archivo_oficial],
-    null=False,
-    blank=False
+        upload_to='documentos/oficiales/',
+        validators=[validar_archivo_oficial],
+        null=False,
+        blank=False
     )
-
     archivo_editable = models.FileField(
         upload_to='documentos/editables/',
         validators=[validar_archivo_editable],
         null=True,
         blank=True
     )
-
 
     class Meta:
         unique_together = ('codigo_documento', 'version')
@@ -74,7 +70,65 @@ class Documento(models.Model):
     def __str__(self):
         return f"{self.codigo_documento} v{self.version} - {self.nombre_documento}"
 
+    def save(self, *args, **kwargs):
+        """
+        Override del método save para manejar automáticamente el estado de documentos padre
+        """
+        # Si es un documento nuevo (no tiene pk) y tiene documento_padre
+        if not self.pk and self.documento_padre:
+            # Marcar el documento padre como obsoleto
+            self.documento_padre.estado = 'OBS'
+            self.documento_padre.save(update_fields=['estado', 'fecha_actualizacion'])
+            
+            # Asegurar que el nuevo documento esté vigente
+            self.estado = 'VIG'
+            
+            # Auto-incrementar la versión basada en el documento padre
+            if not self.version:
+                self.version = self.documento_padre.version + 1
+
+        # Si es un documento nuevo sin padre, asegurar que esté vigente
+        elif not self.pk and not self.documento_padre:
+            self.estado = 'VIG'
+            if not self.version:
+                self.version = 1
+
+        super().save(*args, **kwargs)
+
+    def crear_nueva_version(self, **datos_actualizados):
+        """
+        Método helper para crear una nueva versión del documento
+        """
+        nueva_version = Documento(
+            documento_padre=self,
+            codigo_documento=self.codigo_documento,
+            nombre_documento=datos_actualizados.get('nombre_documento', self.nombre_documento),
+            proceso=datos_actualizados.get('proceso', self.proceso),
+            tipo_documento=datos_actualizados.get('tipo_documento', self.tipo_documento),
+            version=self.version + 1,
+            estado='VIG',
+            archivo_oficial=datos_actualizados.get('archivo_oficial'),
+            archivo_editable=datos_actualizados.get('archivo_editable', self.archivo_editable),
+        )
+        nueva_version.save()
+        return nueva_version
+
     def get_ultima_version(self):
+        """
+        Obtiene la última versión del documento
+        """
         return self.versiones.order_by('-version').first()
 
-    
+    def get_version_vigente(self):
+        """
+        Obtiene la versión vigente del documento
+        """
+        return self.versiones.filter(estado='VIG').first()
+
+    @classmethod
+    def get_documentos_vigentes(cls):
+        """
+        Obtiene todos los documentos que están vigentes
+        """
+        return cls.objects.filter(estado='VIG', activo=True)
+
