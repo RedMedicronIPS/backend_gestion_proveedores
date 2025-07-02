@@ -58,9 +58,9 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'processes.middleware.CustomXFrameOptionsMiddleware',
-    
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -137,9 +137,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-X_FRAME_OPTIONS = 'SAMEORIGIN'
-#X_FRAME_OPTIONS = None
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -177,3 +174,8 @@ SIMPLE_JWT = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Para desarrollo, desactivar X-Frame-Options globalmente si es necesario
+if DEBUG:
+    X_FRAME_OPTIONS = 'SAMEORIGIN'
+    SECURE_CONTENT_TYPE_NOSNIFF = False
