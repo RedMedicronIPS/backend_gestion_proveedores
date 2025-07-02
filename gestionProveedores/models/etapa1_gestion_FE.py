@@ -18,7 +18,7 @@ class GestionarFactura(models.Model):
 
     factura_estado_factura_gestion = models.ForeignKey(
         'gestionProveedores.EstadoFactura',
-        on_delete=models.PROTECT,  # o CASCADE si prefieres
+        on_delete=models.PROTECT,  
         null=False,
         blank=False,
         db_column='factura_estado_factura_id',
@@ -31,7 +31,7 @@ class GestionarFactura(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='anulaciones_gestionar',  # ← cambiado
+        related_name='anulaciones_gestionar',  
         verbose_name="Causal Devolución y/o Anulación"
     )
     observaciones_gestion = models.TextField(
@@ -43,7 +43,7 @@ class GestionarFactura(models.Model):
     factura_relacionada = models.OneToOneField(
         Factura,
         on_delete=models.CASCADE,
-        related_name='gestion_factura',  # ← Este nombre
+        related_name='gestion_factura',  
         null=True,
         blank=True,
         verbose_name="Factura relacionada"

@@ -8,6 +8,6 @@ class EstadoRevision(models.Model):
         return self.nombre
 
     class Meta:
-        db_table = "gestionProveedores_estadorevision"  # ← aseguramos coincidencia con la tabla esperada
+        db_table = "gestionProveedores_estadorevision" 
         verbose_name = "Estado de revisión"
         verbose_name_plural = "Estados de revisión"

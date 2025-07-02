@@ -20,7 +20,7 @@ class PendienteRevision(models.Model):
 
     revision_estado_revision = models.ForeignKey(
         'gestionProveedores.EstadoRevision',
-        on_delete=models.PROTECT,  # o CASCADE si prefieres
+        on_delete=models.PROTECT, 
         null=False,
         blank=False,
         db_column='revision_estado_revision_id',
