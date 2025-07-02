@@ -15,3 +15,5 @@ from .estado_factura import EstadoFactura
 from .etapa4_revision_impuestos import RevisionImpuestos
 from .estado_impuestos import EstadoImpuestos
 from .estados_contraloria import EstadoContraloria
+from .correo import Correo
+from .archivo_adjunto import ArchivoAdjunto

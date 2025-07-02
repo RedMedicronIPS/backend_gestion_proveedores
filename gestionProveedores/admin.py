@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.forms.widgets import RadioSelect
+from django.utils.safestring import mark_safe
+from gestionProveedores.process_emails import process_emails
 from gestionProveedores.models import (
     Factura,
     FacturaElectronicaDetalle,
@@ -18,6 +20,8 @@ from gestionProveedores.models import (
     EstadoImpuestos,
     EstadoContraloria,
     PendientePago,
+    Correo,
+    ArchivoAdjunto,
 )
 
 from django.urls import reverse
@@ -160,7 +164,7 @@ class GestionarFEAdmin(admin.ModelAdmin):
         'factura_estado',
         'causal_devolucion_anulacion',
         'observaciones_gestion',
-        'ver_factura_relacionada'  # aquí agregas el método que creaste
+        'ver_factura_relacionada'  
     ]
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "factura_estado_factura_gestion":
@@ -231,4 +235,38 @@ class PendientePagoAdmin(admin.ModelAdmin):
         if db_field.name == "pago_soportes":
             kwargs["widget"] = RadioSelect()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+@admin.register(Correo)
+class CorreoAdmin(admin.ModelAdmin):
+    list_display = ['subject', 'from_email', 'date_received', 'mostrar_archivos']
+
+    readonly_fields = ['mostrar_archivos']
+
+    fields = ('subject', 'from_email', 'date_received', 'raw_message', 'mostrar_archivos')
+
+    def mostrar_archivos(self, obj):
+        if not obj.archivos:
+            return "-"
+        links = []
+        nombres = [nombre.strip() for nombre in obj.archivos.split(',')]
+        for nombre in nombres:
+            if nombre:
+                url = f"/media/adjuntos/{nombre}"
+                links.append(f'<a href="{url}" target="_blank">{nombre}</a>')
+        return mark_safe("<br>".join(links))
+    mostrar_archivos.short_description = "Archivos"
     
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(archivos__icontains='.zip')
+    def changelist_view(self, request, extra_context=None):
+        """
+        Cada vez que alguien abre el listado de correos en el admin,
+        se ejecuta automáticamente la descarga de correos.
+        """
+        process_emails()
+        return super().changelist_view(request, extra_context=extra_context)
+@admin.register(ArchivoAdjunto)
+class ArchivoAdjuntoAdmin(admin.ModelAdmin):
+    list_display = ('nombre_archivo', 'correo')
