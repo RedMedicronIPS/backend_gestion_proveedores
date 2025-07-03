@@ -24,7 +24,7 @@ ESTADOS = [
 # === Validaciones ===
 def validar_archivo_oficial(file):
     ext = file.name.lower().split('.')[-1]
-    if ext not in ['pdf', 'xls', 'xlsx']:
+    if ext not in ['doc', 'docx', 'pdf', 'xls', 'xlsx']:
         raise ValidationError("El archivo oficial debe ser PDF o Excel (.xls, .xlsx)")
 
 def validar_archivo_editable(file):
