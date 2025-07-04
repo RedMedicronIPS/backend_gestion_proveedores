@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.forms.widgets import RadioSelect
 from django.utils.safestring import mark_safe
 from gestionProveedores.process_emails import process_emails
+from django.urls import reverse
 from gestionProveedores.models import (
     Factura,
     FacturaElectronicaDetalle,
@@ -245,6 +246,7 @@ class CorreoAdmin(admin.ModelAdmin):
 
     fields = ('subject', 'from_email', 'date_received', 'raw_message', 'mostrar_archivos')
 
+
     def mostrar_archivos(self, obj):
         if not obj.archivos:
             return "-"
@@ -252,10 +254,9 @@ class CorreoAdmin(admin.ModelAdmin):
         nombres = [nombre.strip() for nombre in obj.archivos.split(',')]
         for nombre in nombres:
             if nombre:
-                url = f"/media/adjuntos/{nombre}"
+                url = reverse('descargar_archivo', args=[obj.id, nombre])
                 links.append(f'<a href="{url}" target="_blank">{nombre}</a>')
         return mark_safe("<br>".join(links))
-    mostrar_archivos.short_description = "Archivos"
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)

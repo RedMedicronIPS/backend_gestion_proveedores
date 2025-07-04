@@ -1,0 +1,16 @@
+Content-Type: message/delivery-status
+
+Reporting-MTA: dns; googlemail.com
+Arrival-Date: Fri, 04 Jul 2025 13:30:23 -0700 (PDT)
+X-Original-Message-ID: 
+ <CAEX-z+c2Q1vBGAcF-rj15TY9nc_xGQaB2P1TjxhF4M1tvAg00w@mail.gmail.com>
+
+Final-Recipient: rfc822; programador2@redmedicron.com
+Action: failed
+Status: 5.1.2
+Diagnostic-Code: smtp;
+ DNS Error: DNS type 'mx' lookup of redmedicron.com responded with code
+ NXDOMAIN
+ Domain name not found: redmedicron.com For more information,
+ go to https://support.google.com/mail/?p=BadRcptDomain
+Last-Attempt-Date: Fri, 04 Jul 2025 13:30:24 -0700 (PDT)
