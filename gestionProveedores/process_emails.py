@@ -1,39 +1,46 @@
 import os
-import tempfile
+import zipfile
+from datetime import datetime
 from django.utils import timezone
 from django.db import transaction
 from imapclient import IMAPClient
 import pyzmail
 from lxml import etree
+from django.conf import settings
 from gestionProveedores.models.factura import Factura
 from gestionProveedores.models import Correo, ArchivoAdjunto
-from django.conf import settings
+import traceback
 
 EMAIL_HOST = 'imap.gmail.com'
 EMAIL_USER = 'programador1@redmedicronips.com.co'
 EMAIL_PASS = 'pdyx mklo dcli sduu'
 
+NAMESPACES = {
+    'cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2',
+    'cac': 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2',
+    'xades': 'http://uri.etsi.org/01903/v1.3.2#',
+    'sts': 'dian:gov:co:facturaelectronica:Structures-2-1'
+}
+
+
 def process_emails():
     with IMAPClient(EMAIL_HOST, ssl=True) as server:
         server.login(EMAIL_USER, EMAIL_PASS)
         server.select_folder('INBOX', readonly=True)
-
         messages = server.search(['ALL'])
 
         for uid in messages:
-            # ✅ Verificar si ya lo guardamos
-            exists = Correo.objects.filter(uid=uid).exists()
-            if exists:
+            if Correo.objects.filter(uid=uid).exists():
                 print(f"Correo con UID {uid} ya existe. Saltando...")
                 continue
 
-            raw_message = server.fetch([uid], ['RFC822'])[uid][b'RFC822']
-            message = pyzmail.PyzMessage.factory(raw_message)
+            raw = server.fetch([uid], ['RFC822'])[uid][b'RFC822']
+            message = pyzmail.PyzMessage.factory(raw)
 
             subject = message.get_subject()
             from_email = message.get_addresses('from')[0][1]
-
             body = ""
+
             if message.text_part:
                 body = message.text_part.get_payload().decode(message.text_part.charset or 'utf-8')
             elif message.html_part:
@@ -44,84 +51,131 @@ def process_emails():
                 from_email=from_email,
                 date_received=timezone.now(),
                 raw_message=body,
-                uid=uid  # ✅ Guardamos UID
+                uid=uid
             )
 
             archivos_nombres = []
 
             for part in message.mailparts:
                 filename = part.filename
-                if filename:
-                    archivos_nombres.append(filename)
+                if not filename:
+                    continue
 
-                    payload = part.get_payload()
+                archivos_nombres.append(filename)
+                payload = part.get_payload()
+                save_dir = os.path.join(settings.MEDIA_ROOT, 'facturas_electronicas')
+                os.makedirs(save_dir, exist_ok=True)
+                file_path = os.path.join(save_dir, filename)
 
-                    file_path = os.path.join(settings.MEDIA_ROOT, 'adjuntos', filename)
-                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                if not os.path.exists(file_path):
                     with open(file_path, 'wb') as f:
                         f.write(payload)
+                        if correo_obj and correo_obj.id:
+                            ArchivoAdjunto.objects.create(
+                            correo=correo_obj,
+                            nombre_archivo=filename,
+                            archivo=f'facturas_electronicas/{filename}'
+                        )
+                        else:
+                         print(f"❌ No se creó ArchivoAdjunto porque Correo es None o sin ID.")
 
-                    ArchivoAdjunto.objects.create(
-                        correo=correo_obj,
-                        nombre_archivo=filename,
-                        archivo=f'adjuntos/{filename}'
-                    )
+                    print(f"Archivo {filename} guardado en {file_path}.")
+                else:
+                    print(f"Archivo {filename} ya existe. Saltando guardado.")
 
-                    if filename.lower().endswith('.xml'):
-                        with tempfile.NamedTemporaryFile(delete=False, suffix='.xml') as tmp_file:
-                            tmp_file.write(payload)
-                            tmp_file_path = tmp_file.name
+                # Procesar ZIP
+                if filename.lower().endswith('.zip'):
+                    with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                        for member in zip_ref.namelist():
+                            extracted_path = os.path.join(save_dir, member)
 
-                        factura_data = process_xml(tmp_file_path)
-                        if factura_data:
-                            save_factura(factura_data, subject, from_email)
+                            if not os.path.exists(extracted_path):
+                                zip_ref.extract(member, save_dir)
+                                print(f"Archivo {member} extraído en {save_dir}.")
+                            else:
+                                print(f"Archivo {member} ya existe. Saltando extracción.")
 
-                        os.unlink(tmp_file_path)
+                            # SIEMPRE procesar XML
+                            if member.lower().endswith(".xml"):
+                                data = process_xml(extracted_path)
+                                print("DATA EXTRAIDA:", data)
+                                if data:
+                                    save_factura(data, subject, from_email)
+                                else:
+                                    print(f"No se extrajo información de {member}")
+
+                # Procesar XML directo
+                elif filename.lower().endswith('.xml'):
+                    # SIEMPRE procesar aunque el archivo exista
+                    data = process_xml(file_path)
+                    print("DATA EXTRAIDA:", data)
+                    if data:
+                        save_factura(data, subject, from_email)
+                    else:
+                        print(f"No se extrajo información de {filename}")
 
             correo_obj.archivos = ", ".join(archivos_nombres)
             correo_obj.save()
 
+
 def process_xml(file_path):
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            xml_content = f.read()
+        tree = etree.parse(file_path)
+        get = lambda xpath: tree.findtext(xpath, '', namespaces=NAMESPACES)
 
-        if '<?' in xml_content and '<' in xml_content:
-            start_idx = xml_content.find('<')
-            xml_content = xml_content[start_idx:]
+        razon_proveedor = get('.//cac:AccountingSupplierParty//cac:PartyName/cbc:Name')
+        razon_adquiriente = get('.//cac:AccountingCustomerParty//cac:PartyName/cbc:Name')
+        prefix = get('.//sts:AuthorizedInvoices/sts:Prefix')
+        id_factura = get('.//cbc:ID')
 
-        xml_content = xml_content.replace('?>|', '?>')
-        xml_content = xml_content.replace('</ ', '</')
+        if id_factura and prefix and id_factura.startswith(prefix):
+            num_autorizacion = f"{prefix}-{id_factura[len(prefix):]}"
+        elif id_factura:
+            num_autorizacion = id_factura
+        else:
+            num_autorizacion = get('.//cbc:UUID') or ''
 
-        root = etree.fromstring(xml_content.encode('utf-8'))
+        valor = get('.//cac:LegalMonetaryTotal/cbc:LineExtensionAmount')
+        fecha_emision = get('.//cbc:IssueDate')
 
-        registro = root.find('.//RegistroFT006')
-        if registro is None:
-            return None
+        print("RAZON PROVEEDOR:", razon_proveedor)
+        print("RAZON ADQUIRIENTE:", razon_adquiriente)
+        print("NUM AUTORIZACION:", num_autorizacion)
+        print("VALOR:", valor)
+        print("FECHA EMISION:", fecha_emision)
 
-        data = {
-            'factura_id_factura_electronica': registro.findtext('IdFacturaElectronica', ''),
-            'factura_numero_autorizacion': registro.findtext('NumeroAutorizacion', ''),
-            'factura_razon_social_proveedor': registro.findtext('RazonSocialProveedor', ''),
-            'factura_razon_social_adquiriente': registro.findtext('RazonSocialAdquiriente', ''),
-            'factura_valor': float(registro.findtext('ValorTotal', '0')),
-            'factura_fecha': registro.findtext('FechaFactura', None),
+        fecha = None
+        if fecha_emision:
+            fecha = datetime.strptime(fecha_emision, '%Y-%m-%d').date()
+
+        return {
+            'factura_id_factura_electronica': num_autorizacion or '',
+            'factura_numero_autorizacion': num_autorizacion or '',
+            'factura_razon_social_proveedor': razon_proveedor or '',
+            'factura_razon_social_adquiriente': razon_adquiriente or '',
+            'factura_valor': float(valor) if valor else 0.0,
+            'factura_fecha': fecha,
+            'factura_concepto': ''
         }
-        return data
-
     except Exception as e:
-        print(f"Error procesando XML: {e}")
+        print(f"❌ Error procesando XML {file_path}: {e}")
         return None
+
 
 @transaction.atomic
 def save_factura(data, subject, from_email):
-    factura = Factura.objects.create(
-        factura_id_factura_electronica=data.get('factura_id_factura_electronica'),
-        factura_numero_autorizacion=data.get('factura_numero_autorizacion'),
-        factura_razon_social_proveedor=data.get('factura_razon_social_proveedor'),
-        factura_razon_social_adquiriente=data.get('factura_razon_social_adquiriente'),
-        factura_valor=data.get('factura_valor', 0),
-        factura_fecha=data.get('factura_fecha') or timezone.now().date(),
-        factura_concepto=f"Correo de {from_email} - Asunto: {subject}",
-    )
-    print(f"Factura guardada: {factura}")
+    try:
+        Factura.objects.create(
+            factura_id_factura_electronica=data.get('factura_id_factura_electronica', ''),
+            factura_numero_autorizacion=data.get('factura_numero_autorizacion', ''),
+            factura_razon_social_proveedor=data.get('factura_razon_social_proveedor', ''),
+            factura_razon_social_adquiriente=data.get('factura_razon_social_adquiriente', ''),
+            factura_valor=data.get('factura_valor', 0.0),
+            factura_fecha=data.get('factura_fecha', timezone.now().date()),
+            factura_concepto=data.get('factura_concepto') or f"Correo de {from_email} - Asunto: {subject}",
+            factura_etapa="INGRESADO",
+            factura_estado_factura_id=1
+        )
+        print("✅ Factura creada OK")
+    except Exception:
+        traceback.print_exc()
