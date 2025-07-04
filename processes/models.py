@@ -32,6 +32,11 @@ def validar_archivo_editable(file):
     if ext not in ['doc', 'docx', 'xls', 'xlsx']:
         raise ValidationError("El archivo editable debe ser Word o Excel (.doc, .docx, .xls, .xlsx)")
 
+def validar_version(value):
+    """Validar que la versión sea >= 0"""
+    if value < 0:
+        raise ValidationError("La versión debe ser mayor o igual a 0.")
+
 # === Modelo principal ===
 class Documento(models.Model):
     documento_padre = models.ForeignKey(
@@ -41,7 +46,7 @@ class Documento(models.Model):
     nombre_documento = models.CharField(max_length=255)
     proceso = models.ForeignKey(Process, on_delete=models.PROTECT)
     tipo_documento = models.CharField(max_length=3, choices=TIPOS_DOCUMENTO)
-    version = models.PositiveIntegerField()
+    version = models.IntegerField(validators=[validar_version])
     estado = models.CharField(max_length=3, choices=ESTADOS, default='VIG')
     activo = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -91,7 +96,7 @@ class Documento(models.Model):
         elif not self.pk and not self.documento_padre:
             self.estado = 'VIG'
             if not self.version:
-                self.version = 1
+                self.version = 0
 
         super().save(*args, **kwargs)
 
