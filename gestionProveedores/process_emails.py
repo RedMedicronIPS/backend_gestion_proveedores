@@ -229,7 +229,7 @@ def save_tercero(data):
             tercero_departamento=departamento,
             tercero_municipio=municipio,
             tercero_proveedor=True,
-            tercero_tipo=tipo_tercero,  # Asignar el tipo de tercero
+            tercero_tipo=tipo_tercero,  
             tercero_estado=True,
         )
         print("✅ Tercero creado OK")
