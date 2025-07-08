@@ -13,8 +13,8 @@ from tercero.models import Terceros, Departamento, Municipio, TipoTercero, Pais
 import traceback
 
 EMAIL_HOST = 'imap.gmail.com'
-EMAIL_USER = 'programador2@redmedicronips.com.co'
-EMAIL_PASS = 'ebao ugcw kfef tfsw '
+EMAIL_USER = 'programador1@redmedicronips.com.co'
+EMAIL_PASS = 'pdyx mklo dcli sduu'
 
 NAMESPACES = {
     'cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2',
@@ -121,8 +121,8 @@ def process_emails():
                     data = process_xml(file_path)
                     print("DATA EXTRAIDA:", data)
                     if data:
-                      save_factura(data, subject, from_email)
-                        if data.get('tercero'):
+                         save_factura(data, subject, from_email)
+                         if data.get('tercero'):
                             save_tercero(data['tercero'])
                     else:
                         print(f"No se extrajo información de {filename}")
