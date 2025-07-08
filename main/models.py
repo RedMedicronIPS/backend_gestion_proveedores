@@ -1,4 +1,5 @@
 from django.db import models
+from companies.models.headquarters import Headquarters
 
 class TimeStampedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -13,7 +14,7 @@ class Funcionario(TimeStampedModel):
     apellidos = models.CharField(max_length=100)
     fecha_nacimiento = models.DateField()
     cargo = models.CharField(max_length=100)
-    sede = models.CharField(max_length=100)
+    sede = models.ForeignKey(Headquarters, on_delete=models.PROTECT, related_name='sede_funcionarios')
     telefono = models.CharField(max_length=20)
     correo = models.EmailField(unique=True)
     foto = models.ImageField(upload_to='fotosFuncionarios/')

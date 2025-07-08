@@ -1,7 +1,18 @@
 from rest_framework import serializers
 from .models import Funcionario, ContenidoInformativo, Evento, FelicitacionCumpleanios, Reconocimiento
+from companies.models.headquarters import Headquarters
+
+class HeadquartersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Headquarters
+        fields = ['id', 'name', 'habilitationCode', 'city', 'address']
 
 class FuncionarioSerializer(serializers.ModelSerializer):
+    sede = HeadquartersSerializer(read_only=True)
+    sede_id = serializers.PrimaryKeyRelatedField(
+        queryset=Headquarters.objects.all(), source="sede", write_only=True
+    )
+    
     class Meta:
         model = Funcionario
         fields = '__all__'
