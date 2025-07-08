@@ -6,6 +6,7 @@ from .models import Municipio
 from .models import TipoTercero
 from django.forms.widgets import RadioSelect
 
+
 @admin.register(Terceros)
 class TercerosAdmin(admin.ModelAdmin):
     list_display = ('tercero_nombre_completo', 'tercero_email', 'tercero_tipo')
@@ -20,14 +21,13 @@ class TercerosAdmin(admin.ModelAdmin):
 @admin.register(Pais)
 class PaisAdmin(admin.ModelAdmin):
     list_display = ('pais_id', 'pais_nombre')
-    search_fields = ( 'id','pais_id', 'pais_nombre')
-    
+    search_fields = ('id', 'pais_id', 'pais_nombre')
 
 
 @admin.register(Departamento)
 class DepartamentoAdmin(admin.ModelAdmin):
     list_display = ('departamento_id', 'departamento_nombre', 'departamento_pais')
-    search_fields = ( 'id','departamento_id', 'departamento_nombre', 'departamento_pais')
+    search_fields = ('id', 'departamento_id', 'departamento_nombre', 'departamento_pais')
 
 
 @admin.register(Municipio)
@@ -40,3 +40,4 @@ class MunicipioAdmin(admin.ModelAdmin):
 class TipoTerceroAdmin(admin.ModelAdmin):
     list_display = ('tercero_id', 'nombre')
     search_fields = ('nombre',)
+

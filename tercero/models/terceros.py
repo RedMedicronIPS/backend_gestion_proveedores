@@ -4,6 +4,8 @@ from .terceros_departamentos import Departamento
 from .terceros_municipios import Municipio
 from .tipo_tercero import TipoTercero
 
+
+
 class Terceros(models.Model):
     tercero_id = models.AutoField(primary_key=True, verbose_name="ID Tercero")
     tercero_codigo = models.CharField(max_length=50, verbose_name="Código", null=True, blank=True)
@@ -43,6 +45,7 @@ class Terceros(models.Model):
 
     def __str__(self):
         return self.tercero_nombre_completo or "Tercero sin nombre"
+
 
     class Meta:
         verbose_name = "Tercero"

@@ -24,6 +24,14 @@ NAMESPACES = {
 }
 
 
+NAMESPACES = {
+    'cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2',
+    'cac': 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2',
+    'xades': 'http://uri.etsi.org/01903/v1.3.2#',
+    'sts': 'dian:gov:co:facturaelectronica:Structures-2-1'
+}
+
+
 def process_emails():
     with IMAPClient(EMAIL_HOST, ssl=True) as server:
         server.login(EMAIL_USER, EMAIL_PASS)
@@ -73,12 +81,12 @@ def process_emails():
                         f.write(payload)
                         if correo_obj and correo_obj.id:
                             ArchivoAdjunto.objects.create(
-                                correo=correo_obj,
-                                nombre_archivo=filename,
-                                archivo=f'facturas_electronicas/{filename}'
-                            )
+                            correo=correo_obj,
+                            nombre_archivo=filename,
+                            archivo=f'facturas_electronicas/{filename}'
+                        )
                         else:
-                            print(f"❌ No se creó ArchivoAdjunto porque Correo es None o sin ID.")
+                         print(f"❌ No se creó ArchivoAdjunto porque Correo es None o sin ID.")
 
                     print(f"Archivo {filename} guardado en {file_path}.")
                 else:
@@ -96,6 +104,8 @@ def process_emails():
                             else:
                                 print(f"Archivo {member} ya existe. Saltando extracción.")
 
+
+                            # SIEMPRE procesar XML
                             if member.lower().endswith(".xml"):
                                 data = process_xml(extracted_path)
                                 print("DATA EXTRAIDA:", data)
@@ -106,18 +116,20 @@ def process_emails():
                                 else:
                                     print(f"No se extrajo información de {member}")
 
+
                 elif filename.lower().endswith('.xml'):
                     data = process_xml(file_path)
                     print("DATA EXTRAIDA:", data)
                     if data:
+                      save_factura(data, subject, from_email)
                         if data.get('tercero'):
                             save_tercero(data['tercero'])
-                        save_factura(data, subject, from_email)
                     else:
                         print(f"No se extrajo información de {filename}")
 
             correo_obj.archivos = ", ".join(archivos_nombres)
             correo_obj.save()
+
 
 def process_xml(file_path):
     try:
@@ -149,6 +161,12 @@ def process_xml(file_path):
         valor = get('.//cac:LegalMonetaryTotal/cbc:LineExtensionAmount')
         fecha_emision = get('.//cbc:IssueDate')
 
+        print("RAZON PROVEEDOR:", razon_proveedor)
+        print("RAZON ADQUIRIENTE:", razon_adquiriente)
+        print("NUM AUTORIZACION:", num_autorizacion)
+        print("VALOR:", valor)
+        print("FECHA EMISION:", fecha_emision)
+
         fecha = None
         if fecha_emision:
             fecha = datetime.strptime(fecha_emision, '%Y-%m-%d').date()
@@ -175,9 +193,11 @@ def process_xml(file_path):
             'factura_concepto': '',
             'tercero': tercero_data
         }
+
     except Exception as e:
         print(f"❌ Error procesando XML {file_path}: {e}")
         return None
+
 
 @transaction.atomic
 def save_factura(data, subject, from_email):

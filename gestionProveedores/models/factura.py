@@ -64,6 +64,7 @@ class Factura(models.Model):
     def _str_(self):
         return f"Factura {self.factura_numero_autorizacion or self.factura_id}"
 
+
     class Meta:
         verbose_name = "Factura"
         verbose_name_plural = "FACTURAS ELECTRÓNICAS PRINCIPAL"
