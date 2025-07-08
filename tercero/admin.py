@@ -3,39 +3,20 @@ from .models import Terceros
 from .models import Pais
 from .models import Departamento
 from .models import Municipio
+from .models import TipoTercero
+from django.forms.widgets import RadioSelect
 
 
 @admin.register(Terceros)
 class TercerosAdmin(admin.ModelAdmin):
-    list_display = (
-        'tercero_id',
-        'tercero_codigo',
-        'tercero_nombres',
-        'tercero_apellidos',
-        'tercero_razon_social',
-        'tercero_fecha_nacimiento',
-        'tercero_direccion',
-        'tercero_telefono',
-        'tercero_email',
-        'tercero_pais',
-        'tercero_departamento',
-        'tercero_municipio',
-        'tercero_obligado_facturar',
-        'tercero_proveedor',
-        'tercero_tipo',
-        'tercero_estado',
-    )
-    search_fields = (
-        'tercero_codigo',
-        'tercero_nombres',
-        'tercero_apellidos',
-        'tercero_razon_social',
-        'tercero_email',
-        'tercero_telefono',
-        'tercero_direccion',
-    )
+    list_display = ('tercero_nombre_completo', 'tercero_email', 'tercero_tipo')
+    search_fields = ('tercero_nombre_completo', 'tercero_email')
+  
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "tercero_tipo":
+            kwargs["widget"] = RadioSelect()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-   
 
 @admin.register(Pais)
 class PaisAdmin(admin.ModelAdmin):
@@ -52,4 +33,11 @@ class DepartamentoAdmin(admin.ModelAdmin):
 @admin.register(Municipio)
 class MunicipioAdmin(admin.ModelAdmin):
     list_display = ('municipio_id', 'municipio_nombre', 'municipio_departamento')
-    search_fields = ('id', 'municipio_id', 'municipio_nombre', 'municipio_departamento')
+    search_fields = ( 'id','municipio_id', 'municipio_nombre', 'municipio_departamento')
+
+    
+@admin.register(TipoTercero)
+class TipoTerceroAdmin(admin.ModelAdmin):
+    list_display = ('tercero_id', 'nombre')
+    search_fields = ('nombre',)
+

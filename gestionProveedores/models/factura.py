@@ -61,8 +61,9 @@ class Factura(models.Model):
         verbose_name="Causal devolución por impuestos"
     )
 
-    def __str__(self):
+    def _str_(self):
         return f"Factura {self.factura_numero_autorizacion or self.factura_id}"
+
 
     class Meta:
         verbose_name = "Factura"

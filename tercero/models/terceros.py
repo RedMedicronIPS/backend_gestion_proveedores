@@ -2,14 +2,21 @@ from django.db import models
 from .terceros_paises import Pais
 from .terceros_departamentos import Departamento
 from .terceros_municipios import Municipio
+from .tipo_tercero import TipoTercero
 
 
 
 class Terceros(models.Model):
     tercero_id = models.AutoField(primary_key=True, verbose_name="ID Tercero")
-    tercero_codigo = models.CharField(max_length=50, verbose_name="Código")
-    tercero_nombres = models.CharField(max_length=100, verbose_name="Nombres")
-    tercero_apellidos = models.CharField(max_length=100, verbose_name="Apellidos")
+    tercero_codigo = models.CharField(max_length=50, verbose_name="Código", null=True, blank=True)
+
+    # Sustituye estos dos:
+    # tercero_nombres = models.CharField(...)
+    # tercero_apellidos = models.CharField(...)
+
+    # Por este único campo:
+    tercero_nombre_completo = models.CharField(max_length=200, verbose_name="Nombre completo", null=True, blank=True)
+
     tercero_razon_social = models.CharField(max_length=150, blank=True, null=True, verbose_name="Razón social")
     tercero_fecha_nacimiento = models.DateField(blank=True, null=True, verbose_name="Fecha de nacimiento")
     tercero_direccion = models.CharField(max_length=150, blank=True, null=True, verbose_name="Dirección")
@@ -28,12 +35,17 @@ class Terceros(models.Model):
 
     tercero_obligado_facturar = models.BooleanField(default=False, verbose_name="Obligado a facturar", null=True)
     tercero_proveedor = models.BooleanField(default=False, verbose_name="Proveedor", null=True)
-    tercero_tipo = models.BooleanField(default=False, verbose_name="Tipo tercero", null=True)
-
+    tercero_tipo = models.ForeignKey(
+        TipoTercero,
+        on_delete=models.PROTECT,
+        verbose_name="Tipo de tercero",
+        blank=True, null=True
+    )
     tercero_estado = models.BooleanField(default=True, verbose_name="Estado", null=True)
 
     def __str__(self):
-        return f"{self.tercero_nombres} {self.tercero_apellidos}"
+        return self.tercero_nombre_completo or "Tercero sin nombre"
+
 
     class Meta:
         verbose_name = "Tercero"

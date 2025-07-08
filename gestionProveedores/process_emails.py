@@ -9,11 +9,20 @@ from lxml import etree
 from django.conf import settings
 from gestionProveedores.models.factura import Factura
 from gestionProveedores.models import Correo, ArchivoAdjunto
+from tercero.models import Terceros, Departamento, Municipio, TipoTercero, Pais
 import traceback
 
 EMAIL_HOST = 'imap.gmail.com'
-EMAIL_USER = 'programador1@redmedicronips.com.co'
-EMAIL_PASS = 'pdyx mklo dcli sduu'
+EMAIL_USER = 'programador2@redmedicronips.com.co'
+EMAIL_PASS = 'ebao ugcw kfef tfsw '
+
+NAMESPACES = {
+    'cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2',
+    'cac': 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2',
+    'xades': 'http://uri.etsi.org/01903/v1.3.2#',
+    'sts': 'dian:gov:co:facturaelectronica:Structures-2-1'
+}
+
 
 NAMESPACES = {
     'cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2',
@@ -95,22 +104,26 @@ def process_emails():
                             else:
                                 print(f"Archivo {member} ya existe. Saltando extracción.")
 
+
                             # SIEMPRE procesar XML
                             if member.lower().endswith(".xml"):
                                 data = process_xml(extracted_path)
                                 print("DATA EXTRAIDA:", data)
                                 if data:
+                                    if data.get('tercero'):
+                                        save_tercero(data['tercero'])
                                     save_factura(data, subject, from_email)
                                 else:
                                     print(f"No se extrajo información de {member}")
 
-                # Procesar XML directo
+
                 elif filename.lower().endswith('.xml'):
-                    # SIEMPRE procesar aunque el archivo exista
                     data = process_xml(file_path)
                     print("DATA EXTRAIDA:", data)
                     if data:
-                        save_factura(data, subject, from_email)
+                      save_factura(data, subject, from_email)
+                        if data.get('tercero'):
+                            save_tercero(data['tercero'])
                     else:
                         print(f"No se extrajo información de {filename}")
 
@@ -127,6 +140,16 @@ def process_xml(file_path):
         razon_adquiriente = get('.//cac:AccountingCustomerParty//cac:PartyName/cbc:Name')
         prefix = get('.//sts:AuthorizedInvoices/sts:Prefix')
         id_factura = get('.//cbc:ID')
+
+        # Extraer tipo de contribuyente (1: Jurídica, 2: Natural)
+        tipo_contribuyente = get('.//cac:AccountingSupplierParty/cbc:AdditionalAccountID')
+        
+        # Mapear a TipoTercero (asumiendo que en la BD ya existen registros con estos nombres)
+        tipo_tercero = None
+        if tipo_contribuyente == '1':
+            tipo_tercero = 'Persona Jurídica'
+        elif tipo_contribuyente == '2':
+            tipo_tercero = 'Persona Natural'
 
         if id_factura and prefix and id_factura.startswith(prefix):
             num_autorizacion = f"{prefix}-{id_factura[len(prefix):]}"
@@ -148,6 +171,18 @@ def process_xml(file_path):
         if fecha_emision:
             fecha = datetime.strptime(fecha_emision, '%Y-%m-%d').date()
 
+        tercero_data = {
+            'razon_social': razon_proveedor,
+            'nit': get('.//cac:AccountingSupplierParty//cac:PartyLegalEntity/cbc:CompanyID'),
+            'email': get('.//cac:AccountingSupplierParty//cac:Contact/cbc:ElectronicMail'),
+            'telefono': get('.//cac:AccountingSupplierParty//cac:Contact/cbc:Telephone'),
+            'direccion': get('.//cac:AccountingSupplierParty//cac:PhysicalLocation//cbc:Line'),
+            'ciudad': get('.//cac:AccountingSupplierParty//cac:PhysicalLocation//cbc:CityName'),
+            'departamento': get('.//cac:AccountingSupplierParty//cac:PhysicalLocation//cbc:CountrySubentity'),
+            'pais': get('.//cac:AccountingSupplierParty//cac:PhysicalLocation//cac:Address//cac:Country/cbc:Name'),
+            'tipo_tercero': tipo_tercero  # Nuevo campo
+        }
+
         return {
             'factura_id_factura_electronica': num_autorizacion or '',
             'factura_numero_autorizacion': num_autorizacion or '',
@@ -155,8 +190,10 @@ def process_xml(file_path):
             'factura_razon_social_adquiriente': razon_adquiriente or '',
             'factura_valor': float(valor) if valor else 0.0,
             'factura_fecha': fecha,
-            'factura_concepto': ''
+            'factura_concepto': '',
+            'tercero': tercero_data
         }
+
     except Exception as e:
         print(f"❌ Error procesando XML {file_path}: {e}")
         return None
@@ -179,3 +216,43 @@ def save_factura(data, subject, from_email):
         print("✅ Factura creada OK")
     except Exception:
         traceback.print_exc()
+@transaction.atomic
+@transaction.atomic
+def save_tercero(data):
+    try:
+        if not data['nit']:
+            print("❌ Tercero sin NIT, no se crea.")
+            return
+
+        if Terceros.objects.filter(tercero_codigo=data['nit']).exists():
+            print("ℹ️ Tercero ya existe, no se crea.")
+            return
+
+        departamento = Departamento.objects.filter(departamento_nombre__iexact=data.get('departamento', '')).first()
+        municipio = Municipio.objects.filter(municipio_nombre__iexact=data.get('ciudad', '')).first()
+        pais = Pais.objects.filter(pais_nombre__iexact=data.get('pais', '')).first()
+
+        # Buscar el TipoTercero según el nombre extraído (Persona Jurídica/Natural)
+        tipo_tercero = None
+        if data.get('tipo_tercero'):
+            tipo_tercero = TipoTercero.objects.filter(nombre__iexact=data['tipo_tercero']).first()
+            print(f"🔍 Tipo de tercero encontrado: {tipo_tercero}")
+
+        Terceros.objects.create(
+            tercero_codigo=data['nit'],
+            tercero_nombre_completo=data.get('razon_social', ''),
+            tercero_razon_social=data.get('razon_social', ''),
+            tercero_direccion=data.get('direccion', ''),
+            tercero_telefono=data.get('telefono', ''),
+            tercero_email=data.get('email', ''),
+            tercero_pais=pais,
+            tercero_departamento=departamento,
+            tercero_municipio=municipio,
+            tercero_proveedor=True,
+            tercero_tipo=tipo_tercero,  
+            tercero_estado=True,
+        )
+        print("✅ Tercero creado OK")
+
+    except Exception as e:
+        print(f"❌ Error creando tercero: {e}")
