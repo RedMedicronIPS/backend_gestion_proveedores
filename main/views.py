@@ -23,7 +23,7 @@ class EventoViewSet(viewsets.ModelViewSet):
     queryset = Evento.objects.all()
     serializer_class = EventoSerializer
 
-class FelicitacionCumpleaniosViewSet(viewsets.ReadOnlyModelViewSet):
+class FelicitacionCumpleaniosViewSet(viewsets.ModelViewSet):
     queryset = FelicitacionCumpleanios.objects.all()
     serializer_class = FelicitacionCumpleaniosSerializer
 
