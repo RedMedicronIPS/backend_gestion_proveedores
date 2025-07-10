@@ -29,10 +29,38 @@ class EventoSerializer(serializers.ModelSerializer):
 
 class FelicitacionCumpleaniosSerializer(serializers.ModelSerializer):
     funcionario = FuncionarioSerializer(read_only=True)
+    fecha_nacimiento = serializers.SerializerMethodField()
+    mes_cumpleanos = serializers.SerializerMethodField()
+    dias_hasta_cumpleanos = serializers.SerializerMethodField()
 
     class Meta:
         model = FelicitacionCumpleanios
         fields = '__all__'
+    
+    def get_fecha_nacimiento(self, obj):
+        """Retorna la fecha de nacimiento del funcionario"""
+        return obj.funcionario.fecha_nacimiento
+    
+    def get_mes_cumpleanos(self, obj):
+        """Retorna el mes de cumpleaños (1-12)"""
+        return obj.funcionario.fecha_nacimiento.month
+    
+    def get_dias_hasta_cumpleanos(self, obj):
+        """Calcula cuántos días faltan para el cumpleaños"""
+        from datetime import date
+        today = date.today()
+        fecha_nac = obj.funcionario.fecha_nacimiento
+        
+        # Crear la fecha de cumpleaños de este año
+        cumpleanos_este_ano = date(today.year, fecha_nac.month, fecha_nac.day)
+        
+        # Si ya pasó el cumpleaños este año, calcular para el próximo año
+        if cumpleanos_este_ano < today:
+            cumpleanos_este_ano = date(today.year + 1, fecha_nac.month, fecha_nac.day)
+        
+        # Calcular diferencia en días
+        diferencia = cumpleanos_este_ano - today
+        return diferencia.days
 
 class ReconocimientoSerializer(serializers.ModelSerializer):
     funcionario = FuncionarioSerializer(read_only=True)
