@@ -17,7 +17,7 @@ class Funcionario(TimeStampedModel):
     sede = models.ForeignKey(Headquarters, on_delete=models.PROTECT, related_name='sede_funcionarios')
     telefono = models.CharField(max_length=20)
     correo = models.EmailField(unique=True)
-    foto = models.ImageField(upload_to='fotosFuncionarios/')
+    foto = models.ImageField(upload_to='fotosFuncionarios/', null=True, blank=True)
 
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"
