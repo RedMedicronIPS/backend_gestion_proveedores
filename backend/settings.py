@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'companies',
     'processes',
     'main',
+    'indicators',
 ]
 
 MIDDLEWARE = [
