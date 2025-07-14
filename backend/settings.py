@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     'gestionProveedores',
     'companies',
     'processes',
+    'main',
+    'indicators',
 ]
 
 MIDDLEWARE = [
