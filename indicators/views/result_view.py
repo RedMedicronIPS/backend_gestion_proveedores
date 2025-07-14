@@ -9,7 +9,7 @@ from ..serializers.result_serializer import ResultSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 
 class ResultViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
     
@@ -62,3 +62,65 @@ class ResultViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    @action(detail=False, methods=['get'])
+    def detailed(self, request):
+        """
+        Endpoint personalizado que retorna datos detallados de los resultados
+        para el dashboard del frontend
+        """
+        try:
+            # Obtener todos los resultados con relaciones
+            results = Result.objects.select_related(
+                'indicator', 
+                'headquarters', 
+                'user'
+            ).all()
+            
+            # Serializar los datos
+            serializer = self.get_serializer(results, many=True)
+            
+            # Calcular estadísticas adicionales
+            total_results = results.count()
+            total_indicators = results.values('indicator').distinct().count()
+            total_headquarters = results.values('headquarters').distinct().count()
+            
+            # Agrupar por indicador
+            indicators_data = {}
+            for result in results:
+                indicator_name = result.indicator.name
+                if indicator_name not in indicators_data:
+                    indicators_data[indicator_name] = {
+                        'name': indicator_name,
+                        'code': result.indicator.code,
+                        'results_count': 0,
+                        'avg_value': 0,
+                        'values': []
+                    }
+                indicators_data[indicator_name]['results_count'] += 1
+                indicators_data[indicator_name]['values'].append(result.calculatedValue or 0)
+            
+            # Calcular promedios
+            for indicator in indicators_data.values():
+                if indicator['values']:
+                    indicator['avg_value'] = sum(indicator['values']) / len(indicator['values'])
+                del indicator['values']  # Remover valores individuales de la respuesta
+            
+            # Respuesta estructurada
+            response_data = {
+                'results': serializer.data,
+                'statistics': {
+                    'total_results': total_results,
+                    'total_indicators': total_indicators,
+                    'total_headquarters': total_headquarters,
+                },
+                'indicators_summary': list(indicators_data.values())
+            }
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                'error': 'Error al obtener datos detallados',
+                'detail': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -9,7 +9,7 @@ from ..serializers.indicator_serializer import IndicatorSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 
 class IndicatorViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     queryset = Indicator.objects.all()
     serializer_class = IndicatorSerializer
     # Método para listar todas las compañías (GET)
