@@ -36,6 +36,8 @@ urlpatterns = [
     path('api/gestionProveedores/', include('gestionProveedores.urls')),  
     path('api/companies/', include('companies.urls')), 
     path('api/processes/', include('processes.urls')),
+    path('api/main/', include('main.urls')),
+    path('api/indicators/', include('indicators.urls')),
 ]
 
 if settings.DEBUG:
