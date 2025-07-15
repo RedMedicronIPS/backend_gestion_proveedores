@@ -9,6 +9,9 @@ from io import BytesIO
 from email.mime.image import MIMEImage
 import os
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Role(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -46,6 +49,8 @@ class User(AbstractUser):
 
     def send_2fa_email(self, message, otp_secret=None, otp_uri=None, enabled=True):
         """Send 2FA setup/disable email with QR code if enabled."""
+        logger.info(f"Preparando email 2FA para {self.email}, enabled: {enabled}")
+        
         context = {
             'user': self,
             'message': message,
@@ -53,37 +58,44 @@ class User(AbstractUser):
             'enabled': enabled
         }
 
-        html_content = render_to_string('emails/2fa_email.html', context)
-        text_content = strip_tags(html_content)
+        try:
+            html_content = render_to_string('emails/2fa_email.html', context)
+            text_content = strip_tags(html_content)
 
-        email = EmailMultiAlternatives(
-            subject='Configuración de Autenticación en Dos Pasos',
-            body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[self.email]
-        )
-        email.attach_alternative(html_content, "text/html")
+            email = EmailMultiAlternatives(
+                subject='Configuración de Autenticación en Dos Pasos',
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[self.email]
+            )
+            email.attach_alternative(html_content, "text/html")
 
-        # Adjuntar logo
-        logo_path = os.path.join(settings.BASE_DIR, 'users', 'templates', 'assets', 'logoslogan.png')
-        if os.path.exists(logo_path):
-            with open(logo_path, 'rb') as f:
-                logo = MIMEImage(f.read())
-                logo.add_header('Content-ID', '<logo_image>')
-                email.attach(logo)
+            # Adjuntar logo
+            logo_path = os.path.join(settings.BASE_DIR, 'users', 'templates', 'assets', 'logoslogan.png')
+            if os.path.exists(logo_path):
+                with open(logo_path, 'rb') as f:
+                    logo = MIMEImage(f.read())
+                    logo.add_header('Content-ID', '<logo_image>')
+                    email.attach(logo)
 
-        # Generar y adjuntar QR code si 2FA está habilitado
-        if enabled and otp_uri:
-            qr = qrcode.QRCode(version=1, box_size=10, border=5)
-            qr.add_data(otp_uri)
-            qr.make(fit=True)
-            img = qr.make_image(fill_color="black", back_color="white")
+            # Generar y adjuntar QR code SOLO si 2FA está siendo activado
+            if enabled and otp_uri:
+                logger.info("Generando código QR para 2FA")
+                qr = qrcode.QRCode(version=1, box_size=10, border=5)
+                qr.add_data(otp_uri)
+                qr.make(fit=True)
+                img = qr.make_image(fill_color="black", back_color="white")
+                
+                # Convertir imagen QR a bytes
+                buffer = BytesIO()
+                img.save(buffer, format='PNG')
+                qr_image = MIMEImage(buffer.getvalue())
+                qr_image.add_header('Content-ID', '<qr_code>')
+                email.attach(qr_image)
+
+            email.send()
+            logger.info(f"Email 2FA enviado exitosamente a {self.email}")
             
-            # Convertir imagen QR a bytes
-            buffer = BytesIO()
-            img.save(buffer, format='PNG')
-            qr_image = MIMEImage(buffer.getvalue())
-            qr_image.add_header('Content-ID', '<qr_code>')
-            email.attach(qr_image)
-
-        email.send()
+        except Exception as e:
+            logger.error(f"Error detallado al enviar email 2FA: {str(e)}")
+            raise e
