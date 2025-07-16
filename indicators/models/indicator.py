@@ -35,7 +35,7 @@ class Indicator(models.Model):
     trend = models.CharField(max_length=50, choices=[('increasing', 'Creciente'), ('decreasing', 'Decreciente')]) #, ('stable', 'Estable')
     target = models.CharField(max_length=255)
     author = models.CharField(max_length=255)
-    Process = models.ForeignKey(Process, on_delete=models.PROTECT)
+    process = models.ForeignKey(Process, on_delete=models.PROTECT)
     measurementFrequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES)  # Periodicidad del indicador
     status = models.BooleanField(default=True)
     user = models.ForeignKey(User, on_delete=models.PROTECT)

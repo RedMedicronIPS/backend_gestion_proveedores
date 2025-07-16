@@ -12,6 +12,11 @@ class IndicatorViewSet(viewsets.ModelViewSet):
     #permission_classes = [IsAuthenticated]
     queryset = Indicator.objects.all()
     serializer_class = IndicatorSerializer
+    
+    #asignar el usuario que crea el indicador
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
     # Método para listar todas las compañías (GET)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
