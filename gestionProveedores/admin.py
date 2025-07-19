@@ -31,17 +31,7 @@ from django.utils.html import format_html
 class FacturaElectronicaDetalleInline(admin.StackedInline):
     model = FacturaElectronicaDetalle
     extra = 0
-    readonly_fields = [
-        'descripcionFactura',
-        'observacionesGestion',
-        'observacionesInconsistencias',
-        'observacionesConformidad',
-        'observacionesPago',
-        'observacionesContabilidad',
-        'observacionesRevision',
-        'observacionesImpuestos',
-        'observacionesContraloria',
-    ]
+    readonly_fields = []  # ya no bloquea escritura
 
     fieldsets = [
         (None, {
@@ -55,6 +45,7 @@ class FacturaElectronicaDetalleInline(admin.StackedInline):
                 'observacionesRevision',
                 'observacionesImpuestos',
                 'observacionesContraloria',
+                'estado',
             ]
         }),
     ]

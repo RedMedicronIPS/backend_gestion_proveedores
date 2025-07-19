@@ -17,7 +17,7 @@ from .views.etapa4_revision_impuestos_view import RevisionImpuestosViewSet
 from .views.etapa5_revision_contraloria_view import RevisionContraloriaViewSet
 from .views.etapa6_pendiente_pago_view import PendientePagoViewSet
 from gestionProveedores.views.view import descargar_archivo
-
+from .views.factura_view import FacturaRegistroView
 
 router = DefaultRouter()
 router.register(r'causales_devolucion', CausalDevolucionViewSet)
@@ -43,6 +43,10 @@ urlpatterns = [
         'descargar_archivo/<int:correo_id>/<str:filename>/',
         descargar_archivo,
         name='descargar_archivo'
-    )
+    ), path(
+        'gestionProveedores/facturaRegistro/<int:pk>/',
+        FacturaRegistroView.as_view(),
+        name='factura-registro'
+    ),
 ]
 
