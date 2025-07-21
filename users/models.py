@@ -13,14 +13,22 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class Role(models.Model):
+class App(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
-        return self.name
+            return self.name
+
+class Role(models.Model):
+    name = models.CharField(max_length=50) #, unique=True
+    app = models.ForeignKey(App, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.name} ({self.app.name})"
 
 class User(AbstractUser):
-    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
+    #role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
+    roles = models.ManyToManyField(Role, blank=True)
     otp_secret = models.CharField(max_length=32, null=True, blank=True)
     is_2fa_enabled = models.BooleanField(default=False)
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)  # Nuevo campo
