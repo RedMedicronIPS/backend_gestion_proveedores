@@ -10,11 +10,11 @@ class Terceros(models.Model):
     TIPO_DOCUMENTO = [
         ('CC', 'Cédula de Ciudadanía'),
         ('TI', 'Tarjeta de Identidad'),
-        ('NIT', 'Número de Identificación Tributaria'),
         ('CE', 'Cédula de Extranjería'),
         ('PA', 'Pasaporte'),
         ('RC', 'Registro Civil'),
-        ('NI', 'Nit'),
+        ('NIT', 'Número de Identificación Tributaria'),
+        ('OTRO', 'Otro'),
     ]
     #TIPO_TERCERO = [
     #    ('Natural', 'Persona Natural'),
