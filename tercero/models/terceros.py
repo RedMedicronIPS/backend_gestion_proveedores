@@ -7,16 +7,23 @@ from .tipo_tercero import TipoTercero
 
 
 class Terceros(models.Model):
+    TIPO_DOCUMENTO = [
+        ('CC', 'Cédula de Ciudadanía'),
+        ('TI', 'Tarjeta de Identidad'),
+        ('CE', 'Cédula de Extranjería'),
+        ('PA', 'Pasaporte'),
+        ('RC', 'Registro Civil'),
+        ('NIT', 'Número de Identificación Tributaria'),
+        ('OTRO', 'Otro'),
+    ]
+    #TIPO_TERCERO = [
+    #    ('Natural', 'Persona Natural'),
+    #    ('Juridica', 'Persona Jurídica'),
+    #]
     tercero_id = models.AutoField(primary_key=True, verbose_name="ID Tercero")
+    tercero_tipo_documento = models.CharField(max_length=50, choices=TIPO_DOCUMENTO)
     tercero_codigo = models.CharField(max_length=50, verbose_name="Código", null=True, blank=True)
-
-    # Sustituye estos dos:
-    # tercero_nombres = models.CharField(...)
-    # tercero_apellidos = models.CharField(...)
-
-    # Por este único campo:
     tercero_nombre_completo = models.CharField(max_length=200, verbose_name="Nombre completo", null=True, blank=True)
-
     tercero_razon_social = models.CharField(max_length=150, blank=True, null=True, verbose_name="Razón social")
     tercero_fecha_nacimiento = models.DateField(blank=True, null=True, verbose_name="Fecha de nacimiento")
     tercero_direccion = models.CharField(max_length=150, blank=True, null=True, verbose_name="Dirección")
@@ -49,4 +56,4 @@ class Terceros(models.Model):
 
     class Meta:
         verbose_name = "Tercero"
-        verbose_name_plural = "TERCEROS"
+        verbose_name_plural = "Terceros"

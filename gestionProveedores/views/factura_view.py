@@ -2,7 +2,13 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from ..models.factura import Factura
+from ..models.factura_detalle import FacturaElectronicaDetalle
 from ..serializers import FacturaSerializer
+from ..serializers import FacturaElectronicaDetalleSerializer
+from rest_framework import generics
+from rest_framework.response import Response
+from gestionProveedores.serializers.factura_serializer import FacturaSerializer
+
 
 class FacturaViewSet(viewsets.ModelViewSet):
     queryset = Factura.objects.all()
@@ -47,3 +53,15 @@ class FacturaViewSet(viewsets.ModelViewSet):
         factura.status = True  # Activar la factura
         factura.save()
         return Response({'status': 'Factura activated'})
+
+class FacturaRegistroView(generics.RetrieveAPIView):
+    def get(self, request, pk):
+        factura = Factura.objects.get(pk=pk)
+        detalles = FacturaElectronicaDetalle.objects.filter(factura=factura)
+        factura_data = FacturaSerializer(factura).data
+        detalle_data = FacturaElectronicaDetalleSerializer(detalles, many=True).data
+        return Response({
+            "factura": factura_data,
+            "detalles": detalle_data
+        })
+

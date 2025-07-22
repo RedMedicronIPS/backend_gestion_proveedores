@@ -137,3 +137,14 @@ class ReconocimientoViewSet(viewsets.ModelViewSet):
             'total_no_publicados': reconocimientos.count(),
             'reconocimientos': serializer.data
         })
+
+# para el manejo de roles de aplicación
+#from rest_framework.permissions import BasePermission
+
+#class HasAppRole(BasePermission):
+#    def has_permission(self, request, view):
+#        required_role = getattr(view, 'required_role', None)
+#        app_name = getattr(view, 'app_name', None)
+#        if not required_role or not app_name:
+#            return True
+#        return request.user.roles.filter(name=required_role, app__name=app_name).exists()
