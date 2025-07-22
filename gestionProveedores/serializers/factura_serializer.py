@@ -9,21 +9,24 @@ from .etapa2_pendiente_revision_serializer import PendienteRevisionSerializer
 from .etapa3_pendiente_reconocimiento_contable_serializer import PendienteReconocimientoContableSerializer
 
 class FacturaSerializer(serializers.ModelSerializer):
-    # Foráneas anidadas
-    factura_estado_factura = EstadoFacturaSerializer(read_only=True)
 
-    # Relaciones causales
+    factura_estado_factura_id = serializers.PrimaryKeyRelatedField(
+        source='factura_estado_factura',
+        queryset=EstadoFactura.objects.all(),
+        write_only=True
+    )
+
+    factura_estado_factura = EstadoFacturaSerializer(read_only=True)
+    
     causal_anulacion = CausalDevolucionSerializer(read_only=True)
     causal_contabilidad = CausalDevolucionSerializer(read_only=True)
     causal_revision = CausalDevolucionSerializer(read_only=True)
     causal_impuestos = CausalDevolucionSerializer(read_only=True)
-
-    # Detalles relacionados
+    
     detalles = FacturaElectronicaDetalleSerializer(many=True, read_only=True)
     pendiente_revision = PendienteRevisionSerializer(many=True, read_only=True)
     pendiente_reconocimiento_contable = PendienteReconocimientoContableSerializer(many=True, read_only=True)
 
-    # Campos de texto derivados
     factura_centro_operaciones_nombre = serializers.CharField(source="factura_centro_operaciones.operaciones_nombre", read_only=True)
     factura_centro_costo_nombre = serializers.CharField(source="factura_centro_costo.centro_costo_nombre", read_only=True)
     causal_anulacion_nombre = serializers.CharField(source="causal_anulacion.causal_nombre", read_only=True)
