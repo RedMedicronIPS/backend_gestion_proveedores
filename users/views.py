@@ -199,6 +199,9 @@ class Toggle2FAView(APIView):
             )
 
         if enable_2fa:
+            # ACTIVAR 2FA
+            logger.info(f"Activando 2FA para usuario: {user.username}")
+            
             # Generar nuevo secreto
             user.generate_otp_secret()
             totp_uri = user.get_totp_uri()
@@ -207,6 +210,7 @@ class Toggle2FAView(APIView):
 
             # Enviar email con QR
             try:
+                logger.info(f"Enviando email de activación 2FA a: {user.email}")
                 user.send_2fa_email(
                     "La autenticación en dos pasos ha sido activada",
                     otp_secret=user.otp_secret,
@@ -223,9 +227,26 @@ class Toggle2FAView(APIView):
                 'is_2fa_enabled': True
             }, status=status.HTTP_200_OK)
         else:
+            # DESACTIVAR 2FA
+            logger.info(f"Desactivando 2FA para usuario: {user.username}")
+            
             user.is_2fa_enabled = False
             user.otp_secret = None
             user.save()
+            
+            # ✅ AGREGAR: Enviar email de notificación de desactivación
+            try:
+                logger.info(f"Enviando email de desactivación 2FA a: {user.email}")
+                user.send_2fa_email(
+                    "La autenticación en dos pasos ha sido desactivada",
+                    otp_secret=None,
+                    otp_uri=None,
+                    enabled=False
+                )
+                logger.info(f"Email de desactivación 2FA enviado exitosamente a: {user.email}")
+            except Exception as e:
+                logger.error(f"Error enviando email de desactivación 2FA: {str(e)}")
+                # No fallar la operación por error de email
 
             return Response({
                 'message': '2FA desactivado',
@@ -271,11 +292,11 @@ class PasswordResetRequestView(APIView):
 
             email_message.send()
             return Response({'message': 'Se ha enviado un correo con las instrucciones'}, 
-                          status=status.HTTP_200_OK)
+                            status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
             return Response({'error': 'No existe un usuario con ese correo'}, 
-                          status=status.HTTP_404_NOT_FOUND)
+                            status=status.HTTP_404_NOT_FOUND)
 
 class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
@@ -286,21 +307,21 @@ class PasswordResetConfirmView(APIView):
             user = User.objects.get(pk=user_id)
             if not PasswordResetTokenGenerator().check_token(user, token):
                 return Response({'error': 'Token inválido o expirado'}, 
-                              status=status.HTTP_400_BAD_REQUEST)
+                                status=status.HTTP_400_BAD_REQUEST)
 
             new_password = request.data.get('new_password')
             if not new_password:
                 return Response({'error': 'La nueva contraseña es requerida'}, 
-                              status=status.HTTP_400_BAD_REQUEST)
+                                status=status.HTTP_400_BAD_REQUEST)
 
             user.set_password(new_password)
             user.save()
             return Response({'message': 'Contraseña actualizada exitosamente'}, 
-                          status=status.HTTP_200_OK)
+                            status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
             return Response({'error': 'Usuario no encontrado'}, 
-                          status=status.HTTP_404_NOT_FOUND)
+                            status=status.HTTP_404_NOT_FOUND)
 
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
