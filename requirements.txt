@@ -14,3 +14,4 @@ pyzmail36==1.0.5
 qrcode==8.2
 sqlparse==0.5.3
 tzdata==2025.2
+pip install django-autocomplete-light

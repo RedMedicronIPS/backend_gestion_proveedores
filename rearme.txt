@@ -33,7 +33,7 @@ git checkout nombreRama
 
 # clonar el proyecto 
 git clone https://github.com/RedMedicronIPS/backend_gestion_proveedores.git
-
+     
 
 ## en caso de qie se incluyan nuevas librerias al proyecto 
 # crear/actualizar archivo requirements 
