@@ -43,10 +43,10 @@ urlpatterns = [
         'descargar_archivo/<int:correo_id>/<str:filename>/',
         descargar_archivo,
         name='descargar_archivo'
+
     ), path(
         'gestionProveedores/facturaRegistro/<int:pk>/',
         FacturaRegistroView.as_view(),
         name='factura-registro'
     ),
 ]
-
