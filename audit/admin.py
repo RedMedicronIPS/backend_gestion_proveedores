@@ -11,7 +11,7 @@ class AuditoriaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(AuditoriaForm, self).__init__(*args, **kwargs)
 
-        # Lógica para filtrar auditorías relacionadas según el tipo
+        
         if self.instance.pk and self.instance.auditoria_tipo:
             tipo = self.instance.auditoria_tipo
             self.fields['auditoria_relacionada'].queryset = Auditoria.objects.filter(auditoria_tipo=tipo).exclude(pk=self.instance.pk)
@@ -44,7 +44,7 @@ class AuditoriaAdmin(admin.ModelAdmin):
 class EntidadAuditoriaAdmin(admin.ModelAdmin):
     list_display = ('entidad_id', 'nombre')
     search_fields = ('entidad_id', 'nombre')
-
+    
 @admin.register(TipoAuditoria)
 class TipoAuditoriaAdmin(admin.ModelAdmin):
     list_display = ('tipo_id', 'nombre')

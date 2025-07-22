@@ -10,7 +10,7 @@ class Auditoria(models.Model):
     auditoria_responsable = models.CharField(max_length=100, default="", null=True, blank=True, verbose_name="Responsable")
     auditoria_detalle = models.TextField(default="", null=True, blank=True, verbose_name="Detalle")
     auditoria_fecha_auditoria = models.DateField(null=True, blank=True, verbose_name="Fecha de la auditoría")
-
+      
     auditoria_tipo = models.ForeignKey(
         TipoAuditoria,
         on_delete=models.SET_NULL,
@@ -23,7 +23,7 @@ class Auditoria(models.Model):
         EntidadAuditoria,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
+        blank=True,  
         related_name='entidades_auditoria',
         verbose_name="Entidad de auditoría" 
     )
@@ -34,9 +34,9 @@ class Auditoria(models.Model):
         blank=True,
         related_name='auditorias_asociadas',
         verbose_name="Proceso auditado"
-    )
+    )   
 
-    auditoria_relacionada = models.ForeignKey(  # 🔥 Campo nuevo
+    auditoria_relacionada = models.ForeignKey(  
         'self',
         on_delete=models.SET_NULL,
         null=True,
