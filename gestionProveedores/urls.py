@@ -18,6 +18,9 @@ from .views.etapa5_revision_contraloria_view import RevisionContraloriaViewSet
 from .views.etapa6_pendiente_pago_view import PendientePagoViewSet
 from gestionProveedores.views.view import descargar_archivo
 from .views.factura_view import FacturaRegistroView
+from gestionProveedores.reenviar_correo import reenviar_correo_factura
+
+
 
 router = DefaultRouter()
 router.register(r'causales_devolucion', CausalDevolucionViewSet)
@@ -35,7 +38,7 @@ router.register(r'etapa5', RevisionContraloriaViewSet)
 router.register(r'etapa6', PendientePagoViewSet)
 router.register(r'facturas_detalles', FacturaDetalleViewSet)
 router.register(r'factura', FacturaViewSet)
-
+from gestionProveedores.views.reenviar_correo_view import ReenviarCorreoView
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -49,4 +52,5 @@ urlpatterns = [
         FacturaRegistroView.as_view(),
         name='factura-registro'
     ),
+    path('reenviar-correo/', ReenviarCorreoView.as_view(), name='reenviar-correo'),
 ]
