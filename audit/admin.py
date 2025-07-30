@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django import forms
-from .models import Auditoria, EntidadAuditoria, TipoAuditoria
+from .models import Auditoria, EntidadAuditoria, TipoAuditoria, SedeAuditada
+
 
 
 class AuditoriaForm(forms.ModelForm):
@@ -10,7 +11,6 @@ class AuditoriaForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AuditoriaForm, self).__init__(*args, **kwargs)
-
         
         if self.instance.pk and self.instance.auditoria_tipo:
             tipo = self.instance.auditoria_tipo
@@ -49,3 +49,10 @@ class EntidadAuditoriaAdmin(admin.ModelAdmin):
 class TipoAuditoriaAdmin(admin.ModelAdmin):
     list_display = ('tipo_id', 'nombre')
     search_fields = ('tipo_id', 'nombre')
+    
+@admin.register(SedeAuditada)
+class SedeAuditadaAdmin(admin.ModelAdmin):
+    list_display = ('nombre_sede', 'ciudad', 'pais', 'fecha_auditoria', 'auditor', 'observaciones')
+    search_fields = ('nombre_sede', 'ciudad', 'pais', 'auditor__username', 'observaciones')
+    list_filter = ('fecha_auditoria', 'ciudad', 'pais')
+
