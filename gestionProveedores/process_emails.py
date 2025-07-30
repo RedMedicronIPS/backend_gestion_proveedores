@@ -86,13 +86,12 @@ def process_emails():
                             archivo=f'facturas_electronicas/{filename}'
                         )
                         else:
-                         print(f"❌ No se creó ArchivoAdjunto porque Correo es None o sin ID.")
+                         print(f"No se creó ArchivoAdjunto porque Correo es None o sin ID.")
 
                     print(f"Archivo {filename} guardado en {file_path}.")
                 else:
                     print(f"Archivo {filename} ya existe. Saltando guardado.")
 
-                # Procesar ZIP
                 if filename.lower().endswith('.zip'):
                     with zipfile.ZipFile(file_path, 'r') as zip_ref:
                         for member in zip_ref.namelist():
@@ -104,8 +103,6 @@ def process_emails():
                             else:
                                 print(f"Archivo {member} ya existe. Saltando extracción.")
 
-
-                            # SIEMPRE procesar XML
                             if member.lower().endswith(".xml"):
                                 data = process_xml(extracted_path)
                                 print("DATA EXTRAIDA:", data)
@@ -141,10 +138,8 @@ def process_xml(file_path):
         prefix = get('.//sts:AuthorizedInvoices/sts:Prefix')
         id_factura = get('.//cbc:ID')
 
-        # Extraer tipo de contribuyente (1: Jurídica, 2: Natural)
         tipo_contribuyente = get('.//cac:AccountingSupplierParty/cbc:AdditionalAccountID')
         
-        # Mapear a TipoTercero (asumiendo que en la BD ya existen registros con estos nombres)
         tipo_tercero = None
         if tipo_contribuyente == '1':
             tipo_tercero = 'Persona Jurídica'
@@ -180,7 +175,7 @@ def process_xml(file_path):
             'ciudad': get('.//cac:AccountingSupplierParty//cac:PhysicalLocation//cbc:CityName'),
             'departamento': get('.//cac:AccountingSupplierParty//cac:PhysicalLocation//cbc:CountrySubentity'),
             'pais': get('.//cac:AccountingSupplierParty//cac:PhysicalLocation//cac:Address//cac:Country/cbc:Name'),
-            'tipo_tercero': tipo_tercero  # Nuevo campo
+            'tipo_tercero': tipo_tercero 
         }
 
         return {
@@ -195,7 +190,7 @@ def process_xml(file_path):
         }
 
     except Exception as e:
-        print(f"❌ Error procesando XML {file_path}: {e}")
+        print(f"Error procesando XML {file_path}: {e}")
         return None
 
 
@@ -221,18 +216,17 @@ def save_factura(data, subject, from_email):
 def save_tercero(data):
     try:
         if not data['nit']:
-            print("❌ Tercero sin NIT, no se crea.")
+            print("Tercero sin NIT, no se crea.")
             return
 
         if Terceros.objects.filter(tercero_codigo=data['nit']).exists():
-            print("ℹ️ Tercero ya existe, no se crea.")
+            print("Tercero ya existe, no se crea.")
             return
 
         departamento = Departamento.objects.filter(departamento_nombre__iexact=data.get('departamento', '')).first()
         municipio = Municipio.objects.filter(municipio_nombre__iexact=data.get('ciudad', '')).first()
         pais = Pais.objects.filter(pais_nombre__iexact=data.get('pais', '')).first()
 
-        # Buscar el TipoTercero según el nombre extraído (Persona Jurídica/Natural)
         tipo_tercero = None
         if data.get('tipo_tercero'):
             tipo_tercero = TipoTercero.objects.filter(nombre__iexact=data['tipo_tercero']).first()
@@ -255,4 +249,4 @@ def save_tercero(data):
         print("✅ Tercero creado OK")
 
     except Exception as e:
-        print(f"❌ Error creando tercero: {e}")
+        print(f"Error creando tercero: {e}")
