@@ -13,8 +13,8 @@ from tercero.models import Terceros, Departamento, Municipio, TipoTercero, Pais
 import traceback
 
 EMAIL_HOST = 'imap.gmail.com'
-EMAIL_USER = 'programador1@redmedicronips.com.co'
-EMAIL_PASS = 'pdyx mklo dcli sduu'
+EMAIL_USER = 'tics@redmedicronips.com.co'
+EMAIL_PASS = 'oqca trws yeck ecev'
 
 NAMESPACES = {
     'cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2',
