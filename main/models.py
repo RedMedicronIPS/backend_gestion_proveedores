@@ -33,6 +33,7 @@ class ContenidoInformativo(TimeStampedModel):
     enlace = models.URLField(blank=True, null=True)
     urgente = models.BooleanField(default=False)
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+    imagen = models.ImageField(upload_to='imagenContenidoInformativo/', null=True, blank=True)
 
     def __str__(self):
         return f"{self.titulo} - {self.tipo}"
