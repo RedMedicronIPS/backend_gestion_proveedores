@@ -26,10 +26,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 #ALLOWED_HOSTS = ["*"]
-ALLOWED_HOSTS = ["152.200.161.234", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["152.200.161.234", "localhost", "127.0.0.1","192.168.59.231", "red.redmedicronips.com.co"]
 
 
 
@@ -163,8 +163,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
    'http://localhost:5173',
+   'http://localhost:5174',
     'http://127.0.0.1:5173',
-    'http://152.200.161.234:8081',
+    #'http://152.200.161.234:8081',
+    'http://red.redmedicronips.com.co',
 ]
 
 
@@ -187,7 +189,7 @@ CACHES = {
 # Configuración de JWT
 from datetime import timedelta
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1440),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
