@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = True
 
 #ALLOWED_HOSTS = ["*"]
-ALLOWED_HOSTS = ["152.200.161.234", "localhost", "127.0.0.1","192.168.59.231", "red.redmedicronips.com.co"]
+ALLOWED_HOSTS = ["152.200.161.234", "localhost", "127.0.0.1","192.168.59.231", "http://red.redmedicronips.com.co", "https://red.redmedicronips.com.co"]
 
 
 
@@ -165,8 +165,9 @@ CORS_ALLOWED_ORIGINS = [
    'http://localhost:5173',
    'http://localhost:5174',
     'http://127.0.0.1:5173',
-    #'http://152.200.161.234:8081',
+    'http://152.200.161.234:8081',
     'http://red.redmedicronips.com.co',
+    'https://red.redmedicronips.com.co',
 ]
 
 
