@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = True
 
 #ALLOWED_HOSTS = ["*"]
-ALLOWED_HOSTS = ["152.200.161.234", "localhost", "127.0.0.1","192.168.59.231", "http://red.redmedicronips.com.co", "https://red.redmedicronips.com.co"]
+ALLOWED_HOSTS = ["152.200.161.234", "localhost", "127.0.0.1","192.168.59.231", "red.redmedicronips.com.co"]
 
 
 
@@ -168,6 +168,11 @@ CORS_ALLOWED_ORIGINS = [
     'http://152.200.161.234:8081',
     'http://red.redmedicronips.com.co',
     'https://red.redmedicronips.com.co',
+    'http://www.red.redmedicronips.com.co',
+    'https://www.red.redmedicronips.com.co',
+    'https://red.redmedicronips.com.co',
+    'https://152.200.161.234:8082',
+    'https://152.200.161.234:8081',
 ]
 
 
@@ -190,8 +195,8 @@ CACHES = {
 # Configuración de JWT
 from datetime import timedelta
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1440),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=11440),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=11),
 }
 
 MEDIA_URL = '/media/'
