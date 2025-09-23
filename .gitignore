@@ -22,3 +22,5 @@ migrations/
 # Configuración de IDEs
 .idea/
 .vscode/
+
+web.config
