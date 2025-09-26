@@ -14,6 +14,7 @@ TIPOS_DOCUMENTO = [
     ('IN', 'Instructivo'),
     ('FR', 'Formato'),
     ('DE', 'Documento externo'),
+    ('RG', 'Registro'),
 ]
 
 ESTADOS = [
